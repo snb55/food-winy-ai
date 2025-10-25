@@ -266,6 +266,7 @@ export default function Settings() {
               <NotionOnboarding
                 onComplete={handleOnboardingComplete}
                 onCancel={() => setShowOnboarding(false)}
+                userId={user?.uid || ''}
               />
             )}
           </>

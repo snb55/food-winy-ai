@@ -14,7 +14,7 @@ import {
 } from '../services/notion';
 import { createSchemaFromTemplate } from '../config/schemaTemplates';
 import { createSchema } from '../services/firestore';
-import SchemaSelector from './SchemaSelector';
+// import SchemaSelector from './SchemaSelector';
 import './NotionOnboarding.css';
 
 interface NotionOnboardingProps {
@@ -81,10 +81,10 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
     }
   };
 
-  const handleCustomSchema = () => {
-    // TODO: Implement custom schema editor in Phase 2
-    setError('Custom schema editor coming soon! Please select a template for now.');
-  };
+  // const handleCustomSchema = () => {
+  //   // TODO: Implement custom schema editor in Phase 2
+  //   setError('Custom schema editor coming soon! Please select a template for now.');
+  // };
 
   const handleCreateNewDatabase = async () => {
     setLoading(true);
@@ -192,11 +192,28 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
         {/* Schema Selection Step */}
         {step === 'select-schema' && (
           <div className="onboarding-step">
-            <SchemaSelector
-              onSelect={handleSchemaSelect}
-              onCustom={handleCustomSchema}
-              onBack={() => setStep('intro')}
-            />
+            <h2>Select Schema Template</h2>
+            <p>Choose a template for your food log database:</p>
+            
+            <div className="schema-options">
+              <button
+                className="btn btn-primary"
+                onClick={() => handleSchemaSelect('basic')}
+              >
+                Basic Food Log
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => handleSchemaSelect('detailed')}
+              >
+                Detailed Food Log
+              </button>
+            </div>
+            
+            <button className="back-btn" onClick={() => setStep('intro')}>
+              ← Back
+            </button>
+            
             {error && <div className="error-message">{error}</div>}
             {loading && <div className="loading-message">Creating schema...</div>}
           </div>
