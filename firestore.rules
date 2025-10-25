@@ -1,0 +1,29 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can only read/write their own entries
+    match /entries/{entryId} {
+      allow read, write: if request.auth != null &&
+                          request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null &&
+                     request.auth.uid == request.resource.data.userId;
+    }
+
+    // Users can only read/write their own settings
+    match /settings/{userId} {
+      allow read, write: if request.auth != null &&
+                          request.auth.uid == userId;
+    }
+
+    // Users can only read/write their own schemas
+    match /schemas/{schemaId} {
+      allow read: if request.auth != null &&
+                   request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null &&
+                     request.auth.uid == request.resource.data.userId;
+      allow update, delete: if request.auth != null &&
+                             request.auth.uid == resource.data.userId;
+    }
+  }
+}

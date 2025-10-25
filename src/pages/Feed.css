@@ -1,0 +1,128 @@
+/**
+ * Feed Page Styles
+ */
+
+.feed-container {
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.feed-header h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #000000;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background: #f5f5f5;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #666666;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-family: 'Inter', sans-serif;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-text:hover {
+  color: #000000;
+  background: #f5f5f5;
+}
+
+.feed-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.feed-actions {
+  margin-bottom: 2rem;
+}
+
+.loading {
+  text-align: center;
+  color: #666666;
+  padding: 4rem 1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.empty-state p {
+  color: #000000;
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-subtitle {
+  color: #666666;
+  font-size: 0.875rem;
+}
+
+.entries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .feed-header {
+    padding: 1rem;
+  }
+
+  .feed-main {
+    padding: 1rem;
+  }
+
+  .entries-grid {
+    grid-template-columns: 1fr;
+  }
+}
