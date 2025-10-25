@@ -1,6 +1,6 @@
 /**
  * Global App Styles
- * Minimal black and white design with Apple system fonts
+ * Modern, sleek design with Apple system fonts and cool animations
  */
 
 * {
@@ -12,8 +12,9 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #ffffff;
-  color: #000000;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  color: #2c3e50;
+  min-height: 100vh;
 }
 
 .loading-screen {
@@ -23,23 +24,22 @@ body {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  background: #ffffff;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .loading-logo {
   width: 64px;
   height: 64px;
   object-fit: contain;
-  animation: pulse 2s infinite;
+  animation: float 3s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
   }
   50% {
-    opacity: 0.5;
+    transform: translateY(-10px);
   }
 }
 
@@ -50,14 +50,17 @@ body {
 
 /* Shared button styles */
 .btn {
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1.5rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn:disabled {
@@ -66,43 +69,55 @@ body {
 }
 
 .btn-primary {
-  background: #000000;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
+  transform: translateY(0);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #333333;
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: #000000;
-  border: 1px solid #e0e0e0;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  border-color: #000000;
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* Shared input styles */
 .input {
-  padding: 0.75rem 1rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
   font-size: 0.875rem;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  transition: border-color 0.2s;
-  background: #ffffff;
-  color: #000000;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.9);
+  color: #2c3e50;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .input:hover {
-  border-color: #000000;
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .input:focus {
   outline: none;
-  border-color: #000000;
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
 }
 
 .input:disabled {
