@@ -45,3 +45,12 @@
 - Removed test files containing API tokens
 - Cleaned git history to remove all sensitive data
 - Application builds successfully with simplified form structure
+
+### Schema Migration for Existing Users
+- **Added automatic schema migration** for existing users
+- **Created schemaMigration.ts service** to update existing schemas
+- **Modified AddEntryModal** to automatically migrate schemas on load
+- **Existing users will now see simplified form** (Description + Photo only)
+- **Name field is hidden** and AI-extracted from description
+- **Meal Type field is also AI-extracted**
+- **Migration is automatic and seamless** for all users

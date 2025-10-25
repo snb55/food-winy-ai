@@ -92,7 +92,7 @@
   border-radius: 4px;
   font-size: 0.75rem;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   transition: all 0.2s;
 }
 
@@ -115,7 +115,7 @@
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   font-size: 0.875rem;
-  font-family: 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   resize: vertical;
   min-height: 100px;
   transition: border-color 0.2s;
