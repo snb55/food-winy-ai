@@ -303,14 +303,14 @@ export default function AddEntryModal({ onClose, onEntryAdded }: AddEntryModalPr
                       onClick={() => fileInputRef.current?.click()}
                       className="btn btn-secondary"
                     >
-                      📁 Upload Photo
+                      Upload Photo
                     </button>
                     <button
                       type="button"
                       onClick={() => cameraInputRef.current?.click()}
                       className="btn btn-secondary"
                     >
-                      📷 Take Photo
+                      Take Photo
                     </button>
                   </div>
                 )}

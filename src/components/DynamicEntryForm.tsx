@@ -233,7 +233,6 @@ export default function DynamicEntryForm({
                   </div>
                 ) : (
                   <label htmlFor="photo-input" className="upload-label">
-                    <div className="upload-icon">📷</div>
                     <div className="upload-text">Click to upload or take photo</div>
                     <input
                       type="file"
@@ -299,7 +298,7 @@ export default function DynamicEntryForm({
       {/* AI extraction note */}
       {schema.fields.some(f => f.extractFromAI && !f.showInForm) && (
         <div className="form-note ai-note">
-          <div className="ai-icon">🤖</div>
+          <div className="ai-icon">AI</div>
           <div>
             <strong>AI will automatically extract:</strong>
             <div className="ai-fields">
