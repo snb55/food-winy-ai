@@ -83,9 +83,9 @@ export default function AddEntryModal({ onClose, onEntryAdded }: AddEntryModalPr
 
   const handleFieldValuesChange = (values: Record<string, any>) => {
     setFieldValues(values);
-    // For legacy compatibility, update text if name field changes
-    if (values.name) {
-      setText(values.name);
+    // For legacy compatibility, update text if description field changes
+    if (values.description) {
+      setText(values.description);
     }
   };
 
@@ -142,8 +142,8 @@ export default function AddEntryModal({ onClose, onEntryAdded }: AddEntryModalPr
         });
       }
 
-      // Get text for AI summary (from name field or legacy text)
-      const entryText = fieldValues.name || text;
+      // Get text for AI summary (from description field or legacy text)
+      const entryText = fieldValues.description || text;
 
       // Generate AI summary and extract field values
       const aiResult = await generateFoodSummary(entryText, photoBase64 || undefined, schema);

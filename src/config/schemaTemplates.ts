@@ -33,9 +33,18 @@ const simpleTemplate: SchemaTemplate = {
       type: 'title',
       notionPropertyType: 'title',
       required: true,
-      showInForm: true,
+      showInForm: false, // Hidden from form - AI will extract from text
       extractFromAI: true,
       aiPromptHint: 'A brief description of what was eaten',
+    },
+    {
+      id: 'description',
+      name: 'Description',
+      type: 'text',
+      notionPropertyType: 'rich_text',
+      required: true,
+      showInForm: true,
+      aiPromptHint: 'What did you eat? (e.g., "Grilled chicken salad with olive oil")',
     },
     {
       id: 'date',
@@ -83,9 +92,18 @@ const macroTemplate: SchemaTemplate = {
       type: 'title',
       notionPropertyType: 'title',
       required: true,
-      showInForm: true,
+      showInForm: false, // Hidden from form - AI will extract from text
       extractFromAI: true,
       aiPromptHint: 'Food or meal name',
+    },
+    {
+      id: 'description',
+      name: 'Description',
+      type: 'text',
+      notionPropertyType: 'rich_text',
+      required: true,
+      showInForm: true,
+      aiPromptHint: 'What did you eat? (e.g., "Grilled chicken salad with olive oil")',
     },
     {
       id: 'date',
@@ -191,8 +209,17 @@ const fullNutritionTemplate: SchemaTemplate = {
       type: 'title',
       notionPropertyType: 'title',
       required: true,
-      showInForm: true,
+      showInForm: false, // Hidden from form - AI will extract from text
       extractFromAI: true,
+    },
+    {
+      id: 'description',
+      name: 'Description',
+      type: 'text',
+      notionPropertyType: 'rich_text',
+      required: true,
+      showInForm: true,
+      aiPromptHint: 'What did you eat? (e.g., "Grilled chicken salad with olive oil")',
     },
     {
       id: 'date',
@@ -340,8 +367,17 @@ const minimalTemplate: SchemaTemplate = {
       type: 'title',
       notionPropertyType: 'title',
       required: true,
-      showInForm: true,
+      showInForm: false, // Hidden from form - AI will extract from text
       extractFromAI: true,
+    },
+    {
+      id: 'description',
+      name: 'Description',
+      type: 'text',
+      notionPropertyType: 'rich_text',
+      required: true,
+      showInForm: true,
+      aiPromptHint: 'What did you eat? (e.g., "Grilled chicken salad with olive oil")',
     },
     {
       id: 'date',
