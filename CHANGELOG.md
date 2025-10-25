@@ -54,3 +54,19 @@
 - **Name field is hidden** and AI-extracted from description
 - **Meal Type field is also AI-extracted**
 - **Migration is automatic and seamless** for all users
+
+### Typography Update
+- **Replaced Inter font with Apple system fonts**
+- **Updated font-family** to: `-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif`
+- **Applied across all CSS files** for consistent Apple-native look
+- **Maintains excellent readability** and typography
+- **Font now has native Apple look and feel**
+
+### File Cleanup
+- **Removed duplicate `src/` directory** at project root
+- **Removed duplicate `favicon.png`** at project root  
+- **Consolidated documentation files** by removing redundant ones:
+  - Removed: `CLAUDE.md`, `DEPLOYMENT_GUIDE.md`, `IMPLEMENTATION_SUMMARY.md`
+  - Removed: `NEXT_FEATURES.md`, `NEXT_STEPS.md`, `PROJECT_SUMMARY.md`
+- **Kept essential documentation**: `README.md`, `CHANGELOG.md`, `DEPLOYMENT.md`, `QUICKSTART.md`
+- **Project structure is now clean and organized**
