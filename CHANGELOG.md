@@ -30,3 +30,18 @@
 - Successfully created and pushed to: https://github.com/snb55/food-winy-ai
 - Removed sensitive API tokens from git history
 - Repository is now public and ready for development
+
+## [Latest] - 2024-12-19
+
+### Simplified Input Form
+- **Removed "Name" field** from all schema templates (now AI-extracted only)
+- **Added "Description" field** as the main text input for users
+- **Updated form logic** to use description field instead of name field
+- **Users now only see**: Description (text) + Photo (image) inputs
+- **AI will automatically extract**: name, macros, calories, and other data from description
+- **Form is now much simpler** and more intuitive
+
+### Cleanup
+- Removed test files containing API tokens
+- Cleaned git history to remove all sensitive data
+- Application builds successfully with simplified form structure

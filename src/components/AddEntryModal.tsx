@@ -13,6 +13,7 @@ import { useAuth } from '../hooks/useAuth';
 import { createEntry, getUserSettings, getActiveSchema } from '../services/firestore';
 import { generateFoodSummary } from '../services/gemini';
 import { syncEntryToNotion } from '../services/notion';
+import { migrateSchemaToSimplifiedForm } from '../services/schemaMigration';
 import DynamicEntryForm from './DynamicEntryForm';
 import type { DatabaseSchema } from '../types';
 import './AddEntryModal.css';
@@ -44,8 +45,18 @@ export default function AddEntryModal({ onClose, onEntryAdded }: AddEntryModalPr
     const loadSchema = async () => {
       try {
         console.log('Loading schema for user:', user.uid);
-        const activeSchema = await getActiveSchema(user.uid);
+        let activeSchema = await getActiveSchema(user.uid);
         console.log('Loaded schema:', activeSchema);
+        
+        // Migrate schema if needed
+        if (activeSchema) {
+          const migratedSchema = await migrateSchemaToSimplifiedForm(activeSchema.id);
+          if (migratedSchema) {
+            activeSchema = migratedSchema;
+            console.log('Schema migrated successfully');
+          }
+        }
+        
         setSchema(activeSchema);
         
         // Initialize date field
