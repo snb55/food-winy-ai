@@ -54,10 +54,13 @@ export interface FoodEntry {
   schemaId?: string; // which schema was used (optional for backwards compatibility)
   timestamp: number;
   notionPageId?: string; // ID of the synced Notion page
-  
+
+  // AI-generated title (e.g., "Grilled Chicken Salad")
+  title?: string;
+
   // Dynamic fields based on schema
-  fieldValues?: Record<string, any>; // e.g., { protein: 25, carbs: 40, meal_type: 'Lunch' }
-  
+  fieldValues?: Record<string, any>; // e.g., { name: 'Chicken Salad', protein: 25, carbs: 40 }
+
   // Legacy support (for existing entries)
   photoUrl?: string;
   text?: string;
@@ -74,6 +77,7 @@ export interface UserSettings {
   notionDatabaseId?: string;
   geminiApiKey?: string;
   activeSchemaId?: string; // current schema being used
+  templateId?: string; // tracking template (macro-tracking, simple-logging, etc.)
 }
 
 /**

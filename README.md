@@ -1,15 +1,52 @@
 # food.winy.ai
 
+[![Status](https://img.shields.io/badge/Status-MVP%20Complete-success)](https://food-winy-ai.web.app)
+[![Firebase](https://img.shields.io/badge/Firebase-Deployed-orange)](https://food-winy-ai.web.app)
+
 A minimal, Notion-style food logging web app that lets you track what you eat with photos, text, and AI-powered summaries. Automatically syncs to your Notion database.
+
+**🎉 MVP Status:** Feature complete and deployed! See [Next Steps](#next-steps) for planned analytics features.
+
+**Live App:** [https://food-winy-ai.web.app](https://food-winy-ai.web.app)
 
 ## Features
 
+### Core Functionality ✅
 - **Firebase Authentication** - Secure login with email/password or Google
 - **Photo Upload & Camera** - Capture or upload food photos
-- **AI Summaries** - Powered by Google's Gemini AI for nutritional insights
-- **Notion Integration** - Auto-sync entries to your Notion database
-- **Minimal Design** - Clean black and white UI inspired by Notion
-- **Real-time Sync** - All data stored in Firebase Firestore
+- **AI Nutrition Analysis** - Powered by Google Gemini AI
+  - Automatic extraction of protein, carbs, fat, calories
+  - Meal name generation
+  - Nutritional summaries
+- **Review & Edit Interface** - Review AI-extracted data before saving
+- **Entry Feed** - View all logged meals with photos and nutrition info
+- **Toast Notifications** - Real-time feedback for all operations
+
+### Notion Integration ✅
+- **Onboarding Wizard** - Step-by-step Notion setup
+- **Template Selection** - Choose from 3 tracking templates:
+  - 💪 Macro Tracking (protein, carbs, fat, calories)
+  - 📝 Simple Logging (basic meal logging)
+  - 🥑 Keto Tracking (net carbs, fat, protein)
+- **Hierarchical Page Selector** - Notion-style nested page picker with icons
+- **Auto-sync** - Entries automatically sync to your Notion database
+- **Dynamic Schema** - Fields adapt to your selected template
+
+### Design ✨
+- **Apple-inspired UI** - Clean, minimal design
+- **Responsive Layout** - Works on mobile and desktop
+- **Real-time Updates** - All data stored in Firebase Firestore
+
+## Next Steps
+
+### 📊 Analytics & Charts (Planned)
+- Daily nutrition charts (bar/line graphs)
+- Weekly summaries and aggregates
+- Macro distribution pie charts
+- Trend analysis over time
+- Goal setting with visual progress tracking
+
+See [ENHANCEMENTS.md](ENHANCEMENTS.md) for full roadmap.
 
 ## Tech Stack
 

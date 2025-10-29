@@ -7,8 +7,6 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
-import { auth } from '../config/firebase';
 import { getUserEntries } from '../services/firestore';
 import type { FoodEntry } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -45,14 +43,6 @@ export default function Feed() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   const handleEntryAdded = () => {
     setShowAddModal(false);
     loadEntries();
@@ -70,13 +60,10 @@ export default function Feed() {
         <div className="header-right">
           <button
             onClick={() => navigate('/settings')}
-            className="btn-icon"
+            className="settings-btn"
             title="Settings"
           >
-            ⚙️
-          </button>
-          <button onClick={handleLogout} className="btn-text">
-            Log out
+            Settings
           </button>
         </div>
       </header>
@@ -86,9 +73,9 @@ export default function Feed() {
         <div className="feed-actions">
           <button
             onClick={() => setShowAddModal(true)}
-            className="btn btn-primary"
+            className="new-entry-btn"
           >
-            + New Entry
+            New Entry
           </button>
         </div>
 

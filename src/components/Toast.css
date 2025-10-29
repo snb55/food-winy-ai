@@ -1,0 +1,75 @@
+/**
+ * Toast Notification Styles
+ * Apple-inspired clean design
+ */
+
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  z-index: 10000;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 20px;
+  border-radius: 12px;
+
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  color: white;
+
+  font-size: 0.95rem;
+  font-weight: 500;
+
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.toast-success .toast-icon {
+  background: #34C759;
+  color: white;
+}
+
+.toast-error .toast-icon {
+  background: #FF3B30;
+  color: white;
+}
+
+.toast-info .toast-icon {
+  background: #007AFF;
+  color: white;
+}
+
+.toast-message {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .toast {
+    background: rgba(44, 44, 46, 0.95);
+  }
+}

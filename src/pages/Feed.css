@@ -1,10 +1,10 @@
 /**
- * Feed Page Styles
+ * Feed Page Styles - Minimalist Apple Design
  */
 
 .feed-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #f5f5f7;
   display: flex;
   flex-direction: column;
 }
@@ -13,79 +13,95 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem 2rem;
-  background: rgba(255, 255, 255, 0.9);
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .header-logo {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 
 .feed-header h1 {
-  font-size: 1rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   margin: 0;
   color: #000000;
+  letter-spacing: -0.01em;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
 }
 
-.btn-icon {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-
-.btn-icon:hover {
-  background: #f5f5f5;
-}
-
-.btn-text {
+.settings-btn,
+.logout-btn {
   background: none;
   border: none;
   color: #666666;
   font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0.5rem 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  border-radius: 4px;
-  transition: all 0.2s;
+  padding: 8px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+  border-radius: 8px;
+  transition: all 0.15s ease;
 }
 
-.btn-text:hover {
+.settings-btn:hover,
+.logout-btn:hover {
   color: #000000;
-  background: #f5f5f5;
+  background: #f0f0f0;
+}
+
+.settings-btn:active,
+.logout-btn:active {
+  transform: scale(0.96);
 }
 
 .feed-main {
   flex: 1;
-  padding: 2rem;
+  padding: 32px 24px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
 }
 
 .feed-actions {
-  margin-bottom: 2rem;
+  margin-bottom: 32px;
+}
+
+.new-entry-btn {
+  padding: 12px 24px;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.new-entry-btn:hover {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.new-entry-btn:active {
+  transform: translateY(0);
 }
 
 .loading {

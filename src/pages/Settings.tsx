@@ -8,9 +8,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { getUserSettings, saveUserSettings } from '../services/firestore';
+import { getUserSettings, saveUserSettings, createSchema, setActiveSchema } from '../services/firestore';
 import { verifyNotionConnection } from '../services/notion';
 import NotionOnboarding from '../components/NotionOnboarding';
+import { createSchemaFromTemplate } from '../constants/schemaTemplates';
+import { signOut } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import './Settings.css';
 
 export default function Settings() {
@@ -53,16 +56,31 @@ export default function Settings() {
     window.open('https://www.notion.so/my-integrations', '_blank');
   };
 
-  const handleOnboardingComplete = async (apiKey: string, databaseId: string) => {
+  const handleOnboardingComplete = async (apiKey: string, databaseId: string, templateId: string) => {
     if (!user) return;
 
     setSaving(true);
     setMessage('');
 
     try {
+      // Create schema from template and save to Firestore
+      let savedSchemaId: string | undefined;
+      if (templateId) {
+        const schemaData = createSchemaFromTemplate(templateId, user.uid);
+        const savedSchema = await createSchema(schemaData);
+        savedSchemaId = savedSchema.id;
+
+        // Set as active schema
+        await setActiveSchema(user.uid, savedSchemaId);
+        console.log('Created and activated schema:', savedSchemaId);
+      }
+
+      // Save settings including template ID
       await saveUserSettings(user.uid, {
         notionApiKey: apiKey,
         notionDatabaseId: databaseId,
+        templateId: templateId,
+        activeSchemaId: savedSchemaId,
       });
 
       setNotionApiKey(apiKey);
@@ -138,6 +156,15 @@ export default function Settings() {
       setMessage(error.message || 'Failed to save settings');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
     }
   };
 
@@ -268,6 +295,23 @@ export default function Settings() {
                 onCancel={() => setShowOnboarding(false)}
                 userId={user?.uid || ''}
               />
+            )}
+
+            {/* User Info Section */}
+            {user && (
+              <section className="user-info-section">
+                <div className="user-info">
+                  <p className="logged-in-as">
+                    Logged in as: <strong>{user.email}</strong>
+                  </p>
+                  <button
+                    onClick={handleLogout}
+                    className="btn btn-logout"
+                  >
+                    Log Out
+                  </button>
+                </div>
+              </section>
             )}
           </>
         )}

@@ -12,25 +12,25 @@ import {
   createFoodLogDatabase,
   type NotionDatabase
 } from '../services/notion';
-import { createSchemaFromTemplate } from '../config/schemaTemplates';
-import { createSchema } from '../services/firestore';
-// import SchemaSelector from './SchemaSelector';
+import { SCHEMA_TEMPLATES, createSchemaFromTemplate } from '../constants/schemaTemplates';
+import HierarchicalPageSelector from './HierarchicalPageSelector';
 import './NotionOnboarding.css';
 
 interface NotionOnboardingProps {
   onComplete: (apiKey: string, databaseId: string, schemaId: string) => void;
   onCancel: () => void;
-  userId: string;
+  userId?: string; // Optional until template selection is implemented
 }
 
 type Step = 'intro' | 'select-schema' | 'api-key' | 'choose-database' | 'create-database' | 'success';
 
-export default function NotionOnboarding({ onComplete, onCancel, userId }: NotionOnboardingProps) {
+export default function NotionOnboarding({ onComplete, onCancel }: NotionOnboardingProps) {
   const [step, setStep] = useState<Step>('intro');
   const [apiKey, setApiKey] = useState('');
   const [databaseId, setDatabaseId] = useState('');
   const [schemaId, setSchemaId] = useState('');
   const [databases, setDatabases] = useState<NotionDatabase[]>([]);
+  const [selectedParentPageId, setSelectedParentPageId] = useState<string>(''); // NEW: Selected page for database creation
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,9 +38,9 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
     // Get the value directly from the input field as a fallback
     const inputElement = document.getElementById('apiKey') as HTMLInputElement;
     const actualApiKey = apiKey.trim() || inputElement?.value.trim() || '';
-    
+
     console.log('API Key length:', actualApiKey.length); // Debug log
-    
+
     if (!actualApiKey) {
       setError('Please enter your Notion API key');
       return;
@@ -57,28 +57,27 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
       setDatabases(userDatabases);
       setStep('choose-database');
     } catch (err: any) {
-      setError(err.message || 'Invalid API key. Please check and try again.');
+      console.error('API key submission error:', err);
+
+      // Provide specific error message based on error type
+      if (err.message?.includes('must be logged in') || err.message?.includes('Authentication failed')) {
+        setError('⚠️ Authentication issue detected. Please try signing out and signing back in from Settings.');
+      } else if (err.message?.includes('API key')) {
+        setError(err.message);
+      } else {
+        setError(err.message || 'Failed to connect to Notion. Please check your API key and try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
   const handleSchemaSelect = async (templateId: string) => {
-    setLoading(true);
-    setError('');
+    console.log('Template selected:', templateId);
 
-    try {
-      // Create schema from template
-      const schemaData = createSchemaFromTemplate(templateId, userId);
-      const createdSchema = await createSchema(schemaData);
-      setSchemaId(createdSchema.id);
-      setStep('api-key');
-    } catch (err: any) {
-      console.error('Schema creation error:', err);
-      setError(err.message || 'Failed to create schema');
-    } finally {
-      setLoading(false);
-    }
+    // Store the template ID (we'll create schema from it when creating the database)
+    setSchemaId(templateId);
+    setStep('api-key');
   };
 
   // const handleCustomSchema = () => {
@@ -87,19 +86,23 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
   // };
 
   const handleCreateNewDatabase = async () => {
+    // Validate that a parent page was selected
+    if (!selectedParentPageId) {
+      setError('Please select a page where the database will be created.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      // Get the first available page as parent (if any databases exist, use the first one's parent)
-      let parentPageId: string | undefined = undefined;
-      
-      if (databases.length > 0) {
-        // Use an existing page as parent
-        parentPageId = databases[0].id;
+      // Get schema from template if one was selected
+      let schema = null;
+      if (schemaId) {
+        schema = createSchemaFromTemplate(schemaId, 'temp-user');
       }
-      
-      const newDatabaseId = await createFoodLogDatabase(apiKey, parentPageId, schemaId);
+
+      const newDatabaseId = await createFoodLogDatabase(apiKey, selectedParentPageId, schema);
       setDatabaseId(newDatabaseId);
       setStep('success');
     } catch (err: any) {
@@ -192,30 +195,50 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
         {/* Schema Selection Step */}
         {step === 'select-schema' && (
           <div className="onboarding-step">
-            <h2>Select Schema Template</h2>
-            <p>Choose a template for your food log database:</p>
-            
-            <div className="schema-options">
-              <button
-                className="btn btn-primary"
-                onClick={() => handleSchemaSelect('basic')}
-              >
-                Basic Food Log
-              </button>
-              <button
-                className="btn btn-secondary"
-                onClick={() => handleSchemaSelect('detailed')}
-              >
-                Detailed Food Log
-              </button>
+            <h2>Select Tracking Template</h2>
+            <p>Choose what you want to track in your food log:</p>
+
+            <div className="schema-options" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+              {SCHEMA_TEMPLATES.map((template) => (
+                <div
+                  key={template.id}
+                  onClick={() => handleSchemaSelect(template.id)}
+                  style={{
+                    padding: '1.5rem',
+                    border: '2px solid #e5e5e5',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    backgroundColor: '#ffffff',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#000000';
+                    e.currentTarget.style.backgroundColor = '#f9f9f9';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#e5e5e5';
+                    e.currentTarget.style.backgroundColor = '#ffffff';
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontSize: '2rem' }}>{template.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600 }}>{template.name}</h3>
+                      <p style={{ margin: '0.5rem 0 0 0', color: '#666', fontSize: '0.9375rem' }}>{template.description}</p>
+                      <div style={{ marginTop: '0.75rem', fontSize: '0.875rem', color: '#888' }}>
+                        <strong>Tracks:</strong> {template.fields.filter(f => f.extractFromAI || f.id === 'photo').map(f => f.name).join(', ')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            
-            <button className="back-btn" onClick={() => setStep('intro')}>
+
+            <button className="back-btn" onClick={() => setStep('intro')} style={{ marginTop: '1.5rem' }}>
               ← Back
             </button>
-            
+
             {error && <div className="error-message">{error}</div>}
-            {loading && <div className="loading-message">Creating schema...</div>}
           </div>
         )}
 
@@ -303,12 +326,12 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
 
             <h2>Choose Where to Create Database</h2>
             <p className="onboarding-description">
-              {databases.length > 0 
-                ? 'Select a page where we can create your Food Log database.'
+              {databases.filter(d => d.type === 'page').length > 0
+                ? 'We\'ll create a new Food Log database inside one of your pages.'
                 : 'You need to create and share a page with your integration first.'}
             </p>
 
-            {databases.length === 0 ? (
+            {databases.filter(d => d.type === 'page').length === 0 ? (
               <div className="database-option database-option-create" style={{backgroundColor: '#fff3cd', padding: '20px', borderRadius: '8px', border: '1px solid #ffc107'}}>
                 <div className="option-content">
                   <span className="option-icon">📝</span>
@@ -334,31 +357,38 @@ export default function NotionOnboarding({ onComplete, onCancel, userId }: Notio
               <div className="database-options">
                 {/* Create New Option */}
                 <div className="database-option database-option-create">
-                  <div className="option-content">
-                    <span className="option-icon">✨</span>
-                    <div>
-                      <h3>Create New Database</h3>
-                      <p>We'll create it inside one of your shared pages</p>
+                  <div className="option-content" style={{ width: '100%' }}>
+                    <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+                      <span className="option-icon" style={{ fontSize: '2rem' }}>✨</span>
+                      <h3 style={{ margin: '0.5rem 0 0 0' }}>Create New Database</h3>
+                      <p style={{ margin: '0.5rem 0 0 0', color: '#666' }}>Select a page where the database will be created:</p>
                     </div>
+
+                    {/* Hierarchical Page Selector */}
+                    <HierarchicalPageSelector
+                      pages={databases}
+                      selectedPageId={selectedParentPageId}
+                      onSelectPage={setSelectedParentPageId}
+                    />
                   </div>
                   <button
                     className="btn btn-primary"
                     onClick={handleCreateNewDatabase}
-                    disabled={loading}
+                    disabled={loading || !selectedParentPageId}
                   >
                     {loading ? 'Creating...' : 'Create for Me'}
                   </button>
                 </div>
 
                 {/* Existing Databases */}
-                {databases.length > 0 && (
+                {databases.filter(d => d.type === 'database').length > 0 && (
                   <>
                     <div className="option-divider">
-                      <span>or choose existing</span>
+                      <span>or choose existing database</span>
                     </div>
 
                     <div className="existing-databases">
-                      {databases.map((db) => (
+                      {databases.filter(d => d.type === 'database').map((db) => (
                         <div key={db.id} className="database-option">
                           <div className="option-content">
                             <span className="option-icon">📊</span>

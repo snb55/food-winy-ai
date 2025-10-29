@@ -11,6 +11,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
  * AI Analysis Result
  */
 export interface AIAnalysisResult {
+  title: string; // AI-generated entry title (e.g., "Grilled Chicken Salad")
   summary: string;
   extractedFields: Record<string, any>;
 }
@@ -37,26 +38,69 @@ export async function generateFoodSummary(
   const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
   // Build extraction prompt based on schema
+  let fieldsToExtract: any[] = [];
   if (schema?.fields) {
-    const extractableFields = schema.fields.filter((f: any) => f.extractFromAI);
-    if (extractableFields.length > 0) {
-      console.log('Fields to extract from AI:', extractableFields.map((f: any) => f.name));
-    }
+    fieldsToExtract = schema.fields.filter((f: any) => f.extractFromAI && f.id !== 'name' && f.id !== 'summary');
+    console.log('Fields to extract from AI:', fieldsToExtract.map((f: any) => f.name));
   }
 
-  const prompt = `Analyze this food and estimate the macronutrients.
+  // Build dynamic extraction prompt
+  let extractionInstructions = '';
+  let extractionExample = '';
 
-Food: ${text}
+  if (fieldsToExtract.length > 0) {
+    const fieldDescriptions = fieldsToExtract.map(f => {
+      const hint = f.aiPromptHint || `Estimate the ${f.name.toLowerCase()}`;
+      return `"${f.id}": ${hint} (${f.type === 'number' ? `number in ${f.unit || 'units'}` : f.type})`;
+    }).join('\n');
+
+    const exampleFields = fieldsToExtract.reduce((acc: any, f) => {
+      if (f.type === 'number') {
+        // Provide reasonable example values
+        if (f.id === 'protein') acc[f.id] = 35;
+        else if (f.id === 'carbs' || f.id === 'net_carbs') acc[f.id] = 45;
+        else if (f.id === 'fat') acc[f.id] = 15;
+        else if (f.id === 'calories') acc[f.id] = 450;
+        else acc[f.id] = 20;
+      }
+      return acc;
+    }, {});
+
+    extractionInstructions = `Extract the following nutritional information:
+${fieldDescriptions}`;
+
+    extractionExample = JSON.stringify(exampleFields);
+  } else {
+    // Default to basic macros if no schema
+    extractionInstructions = `Extract basic nutritional information:
+"protein": Estimated grams of protein
+"carbs": Estimated grams of carbohydrates
+"fat": Estimated grams of fat
+"calories": Estimated total calories (kcal)`;
+
+    extractionExample = '{"protein": 35, "carbs": 45, "fat": 15, "calories": 450}';
+  }
+
+  const prompt = `Analyze this food and provide a title, nutritional estimates, and a brief summary.
+
+Food description: ${text}
 
 You MUST return EXACTLY this format:
-SUMMARY: [Brief 1-2 sentence summary]
-EXTRACTED_DATA: {"protein": [number], "carbs": [number], "fat": [number], "calories": [number]}
+TITLE: [A short, descriptive meal name (2-5 words)]
+SUMMARY: [Brief 1-2 sentence nutritional summary]
+EXTRACTED_DATA: {JSON object with nutritional data}
 
-Example:
-SUMMARY: High-protein grilled chicken with steamed broccoli - a clean, nutritious dinner perfect for muscle building.
-EXTRACTED_DATA: {"protein": 45, "carbs": 8, "fat": 12, "calories": 320}
+${extractionInstructions}
 
-IMPORTANT: Always provide numerical estimates for protein, carbs, fat, and calories. Use your best judgment based on the food description.`;
+Example format:
+TITLE: Grilled Chicken Salad
+SUMMARY: High-protein grilled chicken breast with mixed greens and olive oil dressing - a clean, balanced meal perfect for muscle building and weight management.
+EXTRACTED_DATA: ${extractionExample}
+
+IMPORTANT:
+- Generate a natural, appetizing title that describes the meal
+- Always provide your best estimates for ALL requested fields (use 0 or null only if truly unknown)
+- Return valid JSON in the EXTRACTED_DATA section`;
 
   console.log('Gemini prompt:', prompt);
 
@@ -77,19 +121,22 @@ IMPORTANT: Always provide numerical estimates for protein, carbs, fat, and calor
 
     const response = await result.response;
     const fullResponse = response.text();
-    
+
     console.log('Gemini full response:', fullResponse);
-    
+
     // Parse the response
-    const summaryMatch = fullResponse.match(/SUMMARY:\s*(.+?)(?:\n|$)/);
+    const titleMatch = fullResponse.match(/TITLE:\s*(.+?)(?:\n|$)/);
+    const summaryMatch = fullResponse.match(/SUMMARY:\s*(.+?)(?:\n|EXTRACTED_DATA)/s);
     const extractedMatch = fullResponse.match(/EXTRACTED_DATA:\s*(\{[\s\S]*?\})/);
-    
+
+    console.log('Title match:', titleMatch);
     console.log('Summary match:', summaryMatch);
     console.log('Extracted match:', extractedMatch);
-    
+
+    let title = titleMatch ? titleMatch[1].trim() : 'Food Entry';
     let summary = summaryMatch ? summaryMatch[1].trim() : fullResponse;
     let extractedFields: Record<string, any> = {};
-    
+
     if (extractedMatch) {
       try {
         const jsonStr = extractedMatch[1].trim();
@@ -98,19 +145,19 @@ IMPORTANT: Always provide numerical estimates for protein, carbs, fat, and calor
       } catch (e) {
         console.warn('Failed to parse extracted data:', e);
         console.warn('Raw extracted data:', extractedMatch[1]);
-        
+
         // Try to extract numbers manually if JSON parsing fails
-        const proteinMatch = fullResponse.match(/protein["\s]*:?\s*(\d+)/i);
-        const carbsMatch = fullResponse.match(/carbs["\s]*:?\s*(\d+)/i);
-        const fatMatch = fullResponse.match(/fat["\s]*:?\s*(\d+)/i);
-        const caloriesMatch = fullResponse.match(/calories["\s]*:?\s*(\d+)/i);
-        
+        const proteinMatch = fullResponse.match(/protein["\s]*:?\s*([\d.]+)/i);
+        const carbsMatch = fullResponse.match(/(?:carbs|net_carbs)["\s]*:?\s*([\d.]+)/i);
+        const fatMatch = fullResponse.match(/fat["\s]*:?\s*([\d.]+)/i);
+        const caloriesMatch = fullResponse.match(/calories["\s]*:?\s*([\d.]+)/i);
+
         if (proteinMatch || carbsMatch || fatMatch || caloriesMatch) {
           extractedFields = {
-            protein: proteinMatch ? parseInt(proteinMatch[1]) : null,
-            carbs: carbsMatch ? parseInt(carbsMatch[1]) : null,
-            fat: fatMatch ? parseInt(fatMatch[1]) : null,
-            calories: caloriesMatch ? parseInt(caloriesMatch[1]) : null
+            protein: proteinMatch ? parseFloat(proteinMatch[1]) : null,
+            carbs: carbsMatch ? parseFloat(carbsMatch[1]) : null,
+            fat: fatMatch ? parseFloat(fatMatch[1]) : null,
+            calories: caloriesMatch ? parseFloat(caloriesMatch[1]) : null
           };
           console.log('Manually extracted fields:', extractedFields);
         }
@@ -118,6 +165,7 @@ IMPORTANT: Always provide numerical estimates for protein, carbs, fat, and calor
     }
 
     return {
+      title,
       summary,
       extractedFields
     };
@@ -126,17 +174,20 @@ IMPORTANT: Always provide numerical estimates for protein, carbs, fat, and calor
     
     if (error.message?.includes('API key')) {
       return {
+        title: 'Food Entry',
         summary: 'Unable to generate summary: Invalid API key.',
         extractedFields: {}
       };
     } else if (error.status === 404) {
       return {
+        title: 'Food Entry',
         summary: 'Unable to generate summary: Model not found.',
         extractedFields: {}
       };
     }
-    
+
     return {
+      title: 'Food Entry',
       summary: 'Unable to generate summary. Please try again.',
       extractedFields: {}
     };

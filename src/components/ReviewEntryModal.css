@@ -1,0 +1,285 @@
+/**
+ * Review Entry Modal Styles
+ * Apple-inspired minimalist design for entry review screen
+ */
+
+.review-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 560px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* Header */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.review-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+.close-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Content */
+.review-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Photo Preview */
+.review-photo {
+  margin-bottom: 24px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.review-photo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+/* Form Fields */
+.review-field {
+  margin-bottom: 20px;
+}
+
+.review-field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666666;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+.review-field input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  color: #000000;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.review-field input[type="text"]:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.review-field input[type="text"]:disabled {
+  background: #f5f5f5;
+  color: #999999;
+  cursor: not-allowed;
+}
+
+.review-field textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  color: #000000;
+  background: #ffffff;
+  transition: all 0.15s ease;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.review-field textarea:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.review-field textarea:disabled {
+  background: #f5f5f5;
+  color: #999999;
+  cursor: not-allowed;
+}
+
+/* Macro Fields Grid */
+.review-macros {
+  margin-bottom: 20px;
+}
+
+.macros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.macro-field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666666;
+  margin-bottom: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+.macro-field label .unit {
+  font-weight: 400;
+  color: #999999;
+}
+
+.macro-field input[type="number"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  color: #000000;
+  background: #ffffff;
+  transition: all 0.15s ease;
+  text-align: center;
+  font-weight: 500;
+}
+
+.macro-field input[type="number"]:focus {
+  outline: none;
+  border-color: #000000;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.macro-field input[type="number"]:disabled {
+  background: #f5f5f5;
+  color: #999999;
+  cursor: not-allowed;
+}
+
+/* Remove spinner arrows from number inputs */
+.macro-field input[type="number"]::-webkit-inner-spin-button,
+.macro-field input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.macro-field input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Actions */
+.review-actions {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e5e5;
+  background: #fafafa;
+}
+
+.review-actions .btn-secondary,
+.review-actions .btn-primary {
+  flex: 1;
+  padding: 12px 24px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  border: none;
+}
+
+.review-actions .btn-secondary {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #e5e5e5;
+}
+
+.review-actions .btn-secondary:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.review-actions .btn-primary {
+  background: #000000;
+  color: #ffffff;
+}
+
+.review-actions .btn-primary:hover:not(:disabled) {
+  background: #333333;
+}
+
+.review-actions .btn-primary:disabled,
+.review-actions .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 640px) {
+  .review-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .review-header {
+    padding: 16px 20px;
+  }
+
+  .review-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .review-content {
+    padding: 20px;
+  }
+
+  .macros-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .review-actions {
+    padding: 16px 20px;
+  }
+}

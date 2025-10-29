@@ -209,40 +209,34 @@ textarea.input {
 
 /* AI Note */
 .ai-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: #f0f7ff;
-  border-left-color: #4a90e2;
-  padding: 16px;
+  background: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 4px;
 }
 
-.ai-icon {
-  font-size: 20px;
-  flex-shrink: 0;
-}
-
-.ai-note strong {
-  display: block;
-  font-size: 13px;
-  color: #333;
-  margin-bottom: 8px;
+.ai-note-title {
+  font-size: 0.8125rem;
+  color: #666666;
+  margin-bottom: 10px;
+  font-weight: 500;
 }
 
 .ai-fields {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .ai-field-tag {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  background: #ffffff;
+  color: #000000;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  border: 1px solid #bbdefb;
+  border: 1px solid #e5e5e5;
 }
 
 /* Responsive */

@@ -7,6 +7,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { ToastProvider } from './hooks/useToast';
 import Login from './pages/Login';
 import Feed from './pages/Feed';
 import Settings from './pages/Settings';
@@ -25,23 +26,25 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={user ? <Navigate to="/feed" replace /> : <Login />}
-        />
-        <Route
-          path="/feed"
-          element={user ? <Feed /> : <Navigate to="/" replace />}
-        />
-        <Route
-          path="/settings"
-          element={user ? <Settings /> : <Navigate to="/" replace />}
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={user ? <Navigate to="/feed" replace /> : <Login />}
+          />
+          <Route
+            path="/feed"
+            element={user ? <Feed /> : <Navigate to="/" replace />}
+          />
+          <Route
+            path="/settings"
+            element={user ? <Settings /> : <Navigate to="/" replace />}
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 

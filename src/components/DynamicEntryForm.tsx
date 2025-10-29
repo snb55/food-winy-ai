@@ -298,9 +298,8 @@ export default function DynamicEntryForm({
       {/* AI extraction note */}
       {schema.fields.some(f => f.extractFromAI && !f.showInForm) && (
         <div className="form-note ai-note">
-          <div className="ai-icon">AI</div>
           <div>
-            <strong>AI will automatically extract:</strong>
+            <div className="ai-note-title">AI will automatically extract:</div>
             <div className="ai-fields">
               {schema.fields
                 .filter(f => f.extractFromAI && !f.showInForm)
