@@ -1,0 +1,323 @@
+/**
+ * Dashboard Settings Component Styles
+ * Modal-style settings UI for dashboard configuration
+ */
+
+.dashboard-settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.dashboard-settings-content {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.dashboard-settings-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666666;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+.dashboard-settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.settings-description {
+  color: #666666;
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.5;
+}
+
+.charts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.chart-setting-item {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1.25rem;
+  transition: all 0.15s ease;
+}
+
+.chart-setting-item:hover {
+  border-color: #cccccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chart-setting-header {
+  margin-bottom: 1rem;
+}
+
+.chart-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cccccc;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: '';
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #000000;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.chart-info {
+  flex: 1;
+}
+
+.chart-label {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+.chart-description {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #666666;
+  line-height: 1.4;
+}
+
+.chart-embed-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.embed-url-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.embed-url-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #000000;
+}
+
+.embed-url-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.embed-url-input {
+  flex: 1;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  background: #f9f9f9;
+  color: #000000;
+}
+
+.embed-url-input:focus {
+  outline: none;
+  border-color: #000000;
+  background: #ffffff;
+}
+
+.copy-btn {
+  padding: 0.625rem 1rem;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: #1a1a1a;
+}
+
+.copy-btn:active {
+  transform: scale(0.98);
+}
+
+.embed-url-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #666666;
+}
+
+.embed-url-generating {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #666666;
+  font-style: italic;
+}
+
+.dashboard-settings-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+}
+
+.btn-secondary {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+.btn-secondary:hover {
+  background: #e5e5e5;
+}
+
+.btn-primary {
+  background: #000000;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #1a1a1a;
+}
+
+.btn-primary:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .dashboard-settings-modal {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .dashboard-settings-content {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .dashboard-settings-header {
+    padding: 1.25rem;
+  }
+
+  .dashboard-settings-body {
+    padding: 1.25rem;
+  }
+
+  .chart-toggle {
+    gap: 0.75rem;
+  }
+
+  .embed-url-input-group {
+    flex-direction: column;
+  }
+
+  .copy-btn {
+    width: 100%;
+  }
+}
+

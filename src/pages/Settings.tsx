@@ -6,19 +6,22 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { getUserSettings, saveUserSettings, createSchema, setActiveSchema } from '../services/firestore';
 import { verifyNotionConnection } from '../services/notion';
 import NotionOnboarding from '../components/NotionOnboarding';
+import DashboardSettings from '../components/DashboardSettings';
 import { createSchemaFromTemplate } from '../constants/schemaTemplates';
 import { signOut } from 'firebase/auth';
 import { auth } from '../config/firebase';
+import type { UserSettings } from '../types';
 import './Settings.css';
 
 export default function Settings() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [notionApiKey, setNotionApiKey] = useState('');
   const [notionDatabaseId, setNotionDatabaseId] = useState('');
   const [loading, setLoading] = useState(true);
@@ -27,12 +30,30 @@ export default function Settings() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [hasNotionSetup, setHasNotionSetup] = useState(false);
+  const [showDashboardSettings, setShowDashboardSettings] = useState(false);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [proteinGoal, setProteinGoal] = useState<number>(150);
+  const [calorieLimit, setCalorieLimit] = useState<number>(2000);
 
   useEffect(() => {
     if (!user) return;
 
     loadSettings();
-  }, [user]);
+
+    // Check if returning from OAuth callback
+    const state = location.state as { notionOAuthSuccess?: boolean; notionAccessToken?: string };
+    if (state?.notionOAuthSuccess && state?.notionAccessToken) {
+      // OAuth completed successfully, reload settings to get the token
+      loadSettings().then(() => {
+        // Open onboarding to continue with database selection
+        setShowOnboarding(true);
+        setMessage('Successfully connected to Notion! Continue by selecting a database.');
+        setMessageType('success');
+        // Clear location state
+        navigate(location.pathname, { replace: true, state: {} });
+      });
+    }
+  }, [user, location.state]);
 
   const loadSettings = async () => {
     if (!user) return;
@@ -44,12 +65,21 @@ export default function Settings() {
         setNotionApiKey(settings.notionApiKey || '');
         setNotionDatabaseId(settings.notionDatabaseId || '');
         setHasNotionSetup(!!settings.notionApiKey && !!settings.notionDatabaseId);
+        setUserSettings(settings);
+        setProteinGoal(settings.proteinGoal || 150);
+        setCalorieLimit(settings.calorieLimit || 2000);
       }
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDashboardSettingsSave = (updatedSettings: UserSettings) => {
+    setUserSettings(updatedSettings);
+    setShowDashboardSettings(false);
+    loadSettings(); // Reload to refresh UI
   };
 
   const handleOpenNotionIntegrations = () => {
@@ -165,6 +195,32 @@ export default function Settings() {
       navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleSaveGoals = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setSaving(true);
+    setMessage('');
+
+    try {
+      await saveUserSettings(user.uid, {
+        proteinGoal,
+        calorieLimit,
+      });
+
+      setMessageType('success');
+      setMessage('Goals and limits saved successfully!');
+
+      // Reload settings to update userSettings state
+      await loadSettings();
+    } catch (error: any) {
+      setMessageType('error');
+      setMessage(error.message || 'Failed to save goals');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -288,12 +344,81 @@ export default function Settings() {
               )}
             </section>
 
+            {/* Dashboard Settings Section */}
+            <section className="settings-section">
+              <h2>Dashboard Settings</h2>
+              <p className="section-description">
+                Customize which charts appear in your dashboard and get embed URLs to share them in Notion.
+              </p>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowDashboardSettings(true)}
+              >
+                Edit Dashboard
+              </button>
+            </section>
+
+            {/* Goals & Limits Section */}
+            <section className="settings-section">
+              <h2>Goals & Limits</h2>
+              <p className="section-description">
+                Set your daily protein goal and calorie limit to track progress and streaks.
+              </p>
+              <form onSubmit={handleSaveGoals} className="goals-form">
+                <div className="form-group">
+                  <label htmlFor="proteinGoal">Daily Protein Goal (g)</label>
+                  <input
+                    type="number"
+                    id="proteinGoal"
+                    value={proteinGoal}
+                    onChange={(e) => setProteinGoal(Number(e.target.value))}
+                    placeholder="150"
+                    min="0"
+                    className="input"
+                  />
+                  <p className="input-hint">How many grams of protein you want to consume daily</p>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="calorieLimit">Daily Calorie Limit (kcal)</label>
+                  <input
+                    type="number"
+                    id="calorieLimit"
+                    value={calorieLimit}
+                    onChange={(e) => setCalorieLimit(Number(e.target.value))}
+                    placeholder="2000"
+                    min="0"
+                    className="input"
+                  />
+                  <p className="input-hint">Maximum calories you want to consume daily</p>
+                </div>
+
+                <div className="form-actions">
+                  <button type="submit" className="btn btn-primary" disabled={saving}>
+                    {saving ? 'Saving...' : 'Save Goals'}
+                  </button>
+                </div>
+              </form>
+            </section>
+
             {/* Show onboarding modal when triggered */}
             {showOnboarding && (
               <NotionOnboarding
                 onComplete={handleOnboardingComplete}
                 onCancel={() => setShowOnboarding(false)}
                 userId={user?.uid || ''}
+                initialApiKey={notionApiKey || (location.state as { notionAccessToken?: string })?.notionAccessToken}
+              />
+            )}
+
+            {/* Show dashboard settings modal when triggered */}
+            {showDashboardSettings && user && userSettings && (
+              <DashboardSettings
+                userId={user.uid}
+                settings={userSettings}
+                onSave={handleDashboardSettingsSave}
+                onClose={() => setShowDashboardSettings(false)}
               />
             )}
 

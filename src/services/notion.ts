@@ -239,6 +239,102 @@ export async function analyzeDatabase(
  * @param schemaId - Schema ID to use for database structure
  * @returns The created database ID
  */
+/**
+ * Query entries from Notion database (bi-directional sync)
+ * Reads all pages from Notion database and returns them in FoodEntry format
+ * @param notionApiKey - User's Notion integration token
+ * @param databaseId - Target Notion database ID
+ * @param schema - Optional schema for field mapping
+ * @returns Array of entries from Notion
+ */
+export async function queryNotionEntries(
+  notionApiKey: string,
+  databaseId: string,
+  schema?: DatabaseSchema | null
+): Promise<FoodEntry[]> {
+  if (!notionApiKey || !databaseId) {
+    throw new Error('Notion API key and database ID are required');
+  }
+
+  // Check if user is authenticated
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error('You must be logged in to sync from Notion. Please sign in and try again.');
+  }
+
+  try {
+    // Ensure auth token is fresh
+    await currentUser.getIdToken();
+
+    console.log('Querying entries from Notion database:', databaseId);
+
+    // Use Firebase Cloud Function to query Notion
+    const functions = getFunctions(app, 'us-central1');
+    const queryDatabase = httpsCallable(functions, 'notionQueryDatabase');
+    const result = await queryDatabase({
+      notionApiKey,
+      databaseId,
+      schema,
+    });
+
+    const data = result.data as { entries: FoodEntry[] };
+    return data.entries;
+  } catch (error: any) {
+    console.error('Error querying Notion database:', error);
+
+    if (error.code === 'unauthenticated' || error.message?.includes('unauthenticated')) {
+      throw new Error('Authentication failed. Please try signing out and signing back in.');
+    }
+
+    throw new Error(error.message || 'Failed to query Notion database. Please check your API key and database ID.');
+  }
+}
+
+/**
+ * Delete a page from Notion database (archive it)
+ * @param notionApiKey - User's Notion integration token
+ * @param pageId - Notion page ID to delete
+ */
+export async function deleteNotionPage(
+  notionApiKey: string,
+  pageId: string
+): Promise<void> {
+  if (!notionApiKey || !pageId) {
+    throw new Error('Notion API key and page ID are required');
+  }
+
+  // Check if user is authenticated
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error('You must be logged in to delete from Notion. Please sign in and try again.');
+  }
+
+  try {
+    // Ensure auth token is fresh
+    await currentUser.getIdToken();
+
+    console.log('Deleting Notion page:', pageId);
+
+    // Use Firebase Cloud Function to delete from Notion
+    const functions = getFunctions(app, 'us-central1');
+    const deletePage = httpsCallable(functions, 'notionDeletePage');
+    await deletePage({
+      notionApiKey,
+      pageId,
+    });
+
+    console.log('Deleted Notion page:', pageId);
+  } catch (error: any) {
+    console.error('Error deleting Notion page:', error);
+
+    if (error.code === 'unauthenticated' || error.message?.includes('unauthenticated')) {
+      throw new Error('Authentication failed. Please try signing out and signing back in.');
+    }
+
+    throw new Error(error.message || 'Failed to delete Notion page. Please check your API key.');
+  }
+}
+
 export async function createFoodLogDatabase(
   notionApiKey: string,
   parentPageId?: string,

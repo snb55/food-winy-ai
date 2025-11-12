@@ -1,0 +1,227 @@
+/**
+ * Dashboard Component Styles
+ * Mobile-first, Apple-inspired design
+ */
+
+.dashboard-container {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.dashboard-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #666666;
+  font-size: 0.9375rem;
+}
+
+.dashboard-section {
+  margin-bottom: 2rem;
+}
+
+.dashboard-section:last-child {
+  margin-bottom: 0;
+}
+
+.dashboard-header-with-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #000000;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Macro Filter Toggles */
+.macro-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.macro-filter-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.875rem;
+  color: #666666;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.macro-filter-item:hover {
+  background: #f5f5f5;
+}
+
+.macro-filter-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #000000;
+}
+
+.macro-filter-item input[type="checkbox"]:checked + .filter-label {
+  color: #000000;
+  font-weight: 500;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  transition: color 0.15s ease;
+}
+
+.chart-container {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chart-empty {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999999;
+  font-size: 0.875rem;
+}
+
+/* Progress Cards */
+.progress-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.progress-card:last-child {
+  margin-bottom: 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-label {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #000000;
+}
+
+.progress-value {
+  font-size: 0.875rem;
+  color: #666666;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: #e5e5e5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #000000;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-percentage {
+  font-size: 0.75rem;
+  color: #666666;
+  text-align: right;
+}
+
+/* Streak Indicator */
+.streak-indicator {
+  width: 100%;
+  height: 6px;
+  background: #e5e5e5;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.streak-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b00 0%, #ff8800 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .dashboard-container {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-header-with-filter {
+    gap: 0.5rem;
+  }
+
+  .macro-filters {
+    gap: 0.5rem;
+  }
+
+  .macro-filter-item {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .chart-container {
+    padding: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .progress-card {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .progress-value {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Very small screens */
+@media (max-width: 400px) {
+  .dashboard-title {
+    font-size: 1rem;
+  }
+
+  .chart-container {
+    padding: 0.5rem;
+  }
+
+  .progress-card {
+    padding: 0.875rem;
+  }
+}
+

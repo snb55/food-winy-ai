@@ -1,0 +1,156 @@
+/**
+ * Sign In Modal Styles
+ */
+
+.signin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.signin-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.signin-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #666666;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.signin-modal-close:hover {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+.signin-modal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.signin-modal-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.signin-modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  color: #000000;
+}
+
+.signin-modal-tagline {
+  text-align: center;
+  color: #666666;
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+}
+
+.signin-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.signin-modal-input {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  transition: border-color 0.2s;
+  background: #ffffff;
+  color: #000000;
+}
+
+.signin-modal-input:hover {
+  border-color: #000000;
+}
+
+.signin-modal-input:focus {
+  outline: none;
+  border-color: #000000;
+}
+
+.signin-modal-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signin-modal-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #666666;
+  font-size: 0.75rem;
+  margin: 1rem 0;
+}
+
+.signin-modal-divider::before,
+.signin-modal-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.signin-modal-error {
+  color: #ff0000;
+  font-size: 0.75rem;
+  text-align: center;
+  margin: 0.5rem 0 0 0;
+}
+
+.signin-modal-toggle {
+  background: none;
+  border: none;
+  color: #666666;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-top: 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  transition: color 0.2s;
+}
+
+.signin-modal-toggle:hover:not(:disabled) {
+  color: #000000;
+}
+
+.signin-modal-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

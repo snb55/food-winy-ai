@@ -8,7 +8,9 @@
 
 import { useState, useEffect } from 'react';
 import type { FoodEntry, DatabaseSchema } from '../types';
-import { deleteEntry, getSchema } from '../services/firestore';
+import { deleteEntry, getSchema, getUserSettings } from '../services/firestore';
+import { deleteNotionPage } from '../services/notion';
+import { useAuth } from '../hooks/useAuth';
 import './EntryCard.css';
 
 interface EntryCardProps {
@@ -17,8 +19,10 @@ interface EntryCardProps {
 }
 
 export default function EntryCard({ entry, onDelete }: EntryCardProps) {
+  const { user } = useAuth();
   const [schema, setSchema] = useState<DatabaseSchema | null>(null);
   const [loadingSchema, setLoadingSchema] = useState(!!entry.schemaId);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Load schema if entry has one
   useEffect(() => {
@@ -43,8 +47,26 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
 
   const handleDelete = async () => {
     if (!window.confirm('Delete this entry?')) return;
+    if (!user) return;
 
     try {
+      // Get user settings to check if Notion is configured
+      const settings = await getUserSettings(user.uid);
+      const hasNotion = settings?.notionApiKey && settings?.notionDatabaseId;
+
+      // NOTION-FIRST: Delete from Notion if it's the source of truth
+      if (hasNotion && entry.notionPageId) {
+        try {
+          await deleteNotionPage(settings.notionApiKey!, entry.notionPageId);
+          console.log('Deleted from Notion (source of truth)');
+        } catch (notionError: any) {
+          console.error('Failed to delete from Notion:', notionError);
+          alert('Failed to delete from Notion. Entry will still be removed from cache.');
+          // Continue to delete from Firestore cache anyway
+        }
+      }
+
+      // Delete from Firestore cache
       await deleteEntry(entry.id);
       onDelete();
     } catch (error) {
@@ -111,32 +133,81 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
     }
   };
 
+  // Extract macros (protein, carbs, fat, calories) for compact display
+  const getMacros = () => {
+    if (!entry.fieldValues) return null;
+
+    const macros = {
+      calories: entry.fieldValues.calories || 0,
+      protein: entry.fieldValues.protein || 0,
+      carbs: entry.fieldValues.carbs || 0,
+      fat: entry.fieldValues.fat || 0,
+    };
+
+    // Only return if at least one macro has a value
+    if (macros.calories > 0 || macros.protein > 0 || macros.carbs > 0 || macros.fat > 0) {
+      return macros;
+    }
+
+    return null;
+  };
+
+  const renderMacros = () => {
+    const macros = getMacros();
+    if (!macros) return null;
+
+    return (
+      <div className="entry-macros">
+        {macros.calories > 0 && (
+          <span className="macro-item">
+            <span className="macro-value">{Math.round(macros.calories)}</span>
+            <span className="macro-label">kcal</span>
+          </span>
+        )}
+        {macros.protein > 0 && (
+          <span className="macro-item">
+            <span className="macro-value">{Math.round(macros.protein)}g</span>
+            <span className="macro-label">protein</span>
+          </span>
+        )}
+        {macros.carbs > 0 && (
+          <span className="macro-item">
+            <span className="macro-value">{Math.round(macros.carbs)}g</span>
+            <span className="macro-label">carbs</span>
+          </span>
+        )}
+        {macros.fat > 0 && (
+          <span className="macro-item">
+            <span className="macro-value">{Math.round(macros.fat)}g</span>
+            <span className="macro-label">fat</span>
+          </span>
+        )}
+      </div>
+    );
+  };
+
   const renderDynamicFields = () => {
     if (!schema || !entry.fieldValues) return null;
 
-    console.log('EntryCard - schema:', schema);
-    console.log('EntryCard - fieldValues:', entry.fieldValues);
-
-    // Get fields to display (exclude photo, date, and summary which are shown separately)
+    // Get fields to display (exclude photo, date, summary, name, and macros)
     const displayFields = schema.fields.filter(
       (f) => 
         f.id !== 'photo' && 
         f.id !== 'date' && 
         f.id !== 'summary' &&
         f.id !== 'name' && // Name is shown as title
-        f.id !== 'meal_type' && // Meal type is shown separately
+        f.id !== 'protein' &&
+        f.id !== 'carbs' &&
+        f.id !== 'fat' &&
+        f.id !== 'calories' && // Macros shown separately
+        f.id !== 'meal_type' && // Meal type shown separately
         entry.fieldValues![f.id] !== undefined &&
         entry.fieldValues![f.id] !== null &&
         entry.fieldValues![f.id] !== '' &&
         entry.fieldValues![f.id] !== 0 // Don't show zero values
     );
 
-    console.log('EntryCard - displayFields:', displayFields);
-    console.log('EntryCard - fieldValues keys:', Object.keys(entry.fieldValues || {}));
-    console.log('EntryCard - fieldValues values:', entry.fieldValues);
-
     if (displayFields.length === 0) {
-      console.log('EntryCard - No fields to display');
       return null;
     }
 
@@ -178,8 +249,36 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
   // Get the summary (from fieldValues or legacy aiSummary)
   const summary = entry.fieldValues?.summary || entry.aiSummary;
 
+  // Check if dynamic fields exist (excluding macros)
+  const hasOtherFields = (() => {
+    if (!schema || !entry.fieldValues) return false;
+    const otherFields = schema.fields.filter(
+      (f) => 
+        f.id !== 'photo' && 
+        f.id !== 'date' && 
+        f.id !== 'summary' &&
+        f.id !== 'name' &&
+        f.id !== 'protein' &&
+        f.id !== 'carbs' &&
+        f.id !== 'fat' &&
+        f.id !== 'calories' &&
+        entry.fieldValues![f.id] !== undefined &&
+        entry.fieldValues![f.id] !== null &&
+        entry.fieldValues![f.id] !== '' &&
+        entry.fieldValues![f.id] !== 0
+    );
+    return otherFields.length > 0;
+  })();
+
+  // Check if there's expandable content
+  const hasExpandableContent = summary || hasOtherFields;
+
   return (
-    <div className="entry-card">
+    <div 
+      className={`entry-card ${isExpanded ? 'expanded' : ''}`}
+      onClick={hasExpandableContent ? () => setIsExpanded(!isExpanded) : undefined}
+      style={hasExpandableContent ? { cursor: 'pointer' } : undefined}
+    >
       {photoUrl && (
         <div className="entry-photo">
           <img src={photoUrl} alt="Food" />
@@ -189,26 +288,56 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
       <div className="entry-content">
         {titleText && <p className="entry-text">{titleText}</p>}
 
-        {/* Display dynamic fields if using schema */}
-        {schema && renderDynamicFields()}
+        {/* Macros displayed below title (always visible) */}
+        {renderMacros()}
 
-        {summary && (
-          <div className="entry-summary">
-            <span className="summary-label">AI Summary:</span>
-            <p className="summary-text">{summary}</p>
+        {/* Expanded content (shown when clicked) */}
+        {isExpanded && (
+          <div className="entry-expanded">
+            {/* Display other dynamic fields if using schema */}
+            {hasOtherFields && renderDynamicFields()}
+
+            {/* AI Summary in expanded section */}
+            {summary && (
+              <div className="entry-summary">
+                <span className="summary-label">AI Summary:</span>
+                <p className="summary-text">{summary}</p>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="entry-footer">
+        <div className="entry-footer" onClick={(e) => e.stopPropagation()}>
           <span className="entry-timestamp">{formatDate(entry.timestamp)}</span>
           {schema && (
             <span className="schema-badge" title={schema.name}>
               {schema.name}
             </span>
           )}
-          <button onClick={handleDelete} className="delete-btn" title="Delete entry">
-            🗑️
-          </button>
+          <div className="entry-actions">
+            {hasExpandableContent && (
+              <button
+                className="expand-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                title={isExpanded ? 'Collapse' : 'Expand'}
+              >
+                {isExpanded ? '▲' : '▼'}
+              </button>
+            )}
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete();
+              }} 
+              className="delete-btn" 
+              title="Delete entry"
+            >
+              🗑️
+            </button>
+          </div>
         </div>
       </div>
     </div>

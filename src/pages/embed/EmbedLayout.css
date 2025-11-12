@@ -1,0 +1,55 @@
+/**
+ * Embed Layout Styles
+ * Optimized for iframe embedding with minimal padding and clean design
+ */
+
+.embed-layout {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
+}
+
+.embed-container {
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.embed-title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000000;
+  text-align: center;
+}
+
+.embed-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.embed-loading,
+.embed-error {
+  padding: 2rem;
+  text-align: center;
+  color: #666666;
+  font-size: 0.875rem;
+}
+
+.embed-error {
+  color: #ff4444;
+}
+
+/* Minimal styles for iframe context */
+@media (max-width: 768px) {
+  .embed-container {
+    padding: 0.75rem;
+  }
+}
+

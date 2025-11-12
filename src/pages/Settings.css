@@ -373,3 +373,22 @@ select.input:disabled {
     width: 100%;
   }
 }
+
+/* Goals & Limits Section */
+
+.goals-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.goals-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.goals-form .input-hint {
+  margin-top: 0.25rem;
+}

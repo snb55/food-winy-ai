@@ -73,7 +73,7 @@
 .feed-main {
   flex: 1;
   padding: 32px 24px;
-  max-width: 1200px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
 }
@@ -132,16 +132,83 @@
   gap: 1.5rem;
 }
 
-@media (max-width: 768px) {
+/* Mobile: < 640px */
+@media (max-width: 639px) {
   .feed-header {
-    padding: 1rem;
+    padding: 12px 16px;
+  }
+
+  .header-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .feed-header h1 {
+    font-size: 1rem;
+  }
+
+  .settings-btn {
+    padding: 6px 12px;
+    font-size: 0.8125rem;
   }
 
   .feed-main {
-    padding: 1rem;
+    padding: 16px;
+  }
+
+  .feed-actions {
+    margin-bottom: 24px;
+  }
+
+  .new-entry-btn {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 1rem;
   }
 
   .entries-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet: 640px - 1024px */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .feed-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .feed-main {
+    padding: 1.5rem;
+  }
+
+  .entries-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+}
+
+/* Desktop: > 1024px */
+@media (min-width: 1025px) {
+  .feed-main {
+    padding: 2rem;
+  }
+
+  .entries-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Large Desktop: > 1400px */
+@media (min-width: 1400px) {
+  .feed-main {
+    max-width: 1600px;
+  }
+}
+
+/* Extra Large Desktop: > 1920px */
+@media (min-width: 1920px) {
+  .feed-main {
+    max-width: 1800px;
   }
 }

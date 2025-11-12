@@ -5,7 +5,7 @@
  * Can automatically create a database or let users choose an existing one.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   verifyNotionConnection,
   listUserDatabases,
@@ -20,13 +20,20 @@ interface NotionOnboardingProps {
   onComplete: (apiKey: string, databaseId: string, schemaId: string) => void;
   onCancel: () => void;
   userId?: string; // Optional until template selection is implemented
+  initialApiKey?: string; // Optional: Access token from OAuth
 }
 
-type Step = 'intro' | 'select-schema' | 'api-key' | 'choose-database' | 'create-database' | 'success';
+type Step = 'intro' | 'select-schema' | 'oauth-connect' | 'choose-database' | 'create-database' | 'success';
 
-export default function NotionOnboarding({ onComplete, onCancel }: NotionOnboardingProps) {
-  const [step, setStep] = useState<Step>('intro');
-  const [apiKey, setApiKey] = useState('');
+// Notion OAuth Configuration
+const NOTION_CLIENT_ID = '29cd872b-594c-80ad-ae12-0037a2146fac';
+const NOTION_REDIRECT_URI = window.location.origin === 'http://localhost:5173' 
+  ? 'http://localhost:5173/auth/notion/callback'
+  : 'https://food.winy.ai/auth/notion/callback';
+
+export default function NotionOnboarding({ onComplete, onCancel, initialApiKey }: NotionOnboardingProps) {
+  const [step, setStep] = useState<Step>(initialApiKey ? 'choose-database' : 'intro');
+  const [apiKey, setApiKey] = useState(initialApiKey || '');
   const [databaseId, setDatabaseId] = useState('');
   const [schemaId, setSchemaId] = useState('');
   const [databases, setDatabases] = useState<NotionDatabase[]>([]);
@@ -34,50 +41,53 @@ export default function NotionOnboarding({ onComplete, onCancel }: NotionOnboard
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleApiKeySubmit = async () => {
-    // Get the value directly from the input field as a fallback
-    const inputElement = document.getElementById('apiKey') as HTMLInputElement;
-    const actualApiKey = apiKey.trim() || inputElement?.value.trim() || '';
-
-    console.log('API Key length:', actualApiKey.length); // Debug log
-
-    if (!actualApiKey) {
-      setError('Please enter your Notion API key');
-      return;
-    }
-
-    // Update state with the actual value
-    setApiKey(actualApiKey);
+  // This function is called when user returns from OAuth or when API key is already set
+  const handleLoadDatabases = async (accessToken: string) => {
+    setApiKey(accessToken);
     setLoading(true);
     setError('');
 
     try {
-      // Verify the API key by listing databases
-      const userDatabases = await listUserDatabases(actualApiKey);
+      // Verify the access token by listing databases
+      const userDatabases = await listUserDatabases(accessToken);
       setDatabases(userDatabases);
       setStep('choose-database');
     } catch (err: any) {
-      console.error('API key submission error:', err);
+      console.error('Database listing error:', err);
 
       // Provide specific error message based on error type
       if (err.message?.includes('must be logged in') || err.message?.includes('Authentication failed')) {
         setError('⚠️ Authentication issue detected. Please try signing out and signing back in from Settings.');
-      } else if (err.message?.includes('API key')) {
-        setError(err.message);
       } else {
-        setError(err.message || 'Failed to connect to Notion. Please check your API key and try again.');
+        setError(err.message || 'Failed to load databases. Please try connecting again.');
       }
     } finally {
       setLoading(false);
     }
   };
 
+  // If initialApiKey is provided (from OAuth), automatically load databases
+  useEffect(() => {
+    if (initialApiKey && initialApiKey !== apiKey && initialApiKey.trim()) {
+      setApiKey(initialApiKey);
+      handleLoadDatabases(initialApiKey);
+    }
+  }, [initialApiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSchemaSelect = async (templateId: string) => {
     console.log('Template selected:', templateId);
 
     // Store the template ID (we'll create schema from it when creating the database)
     setSchemaId(templateId);
-    setStep('api-key');
+    setStep('oauth-connect');
+  };
+
+  const handleOAuthConnect = () => {
+    // Build OAuth authorization URL
+    const authUrl = `https://api.notion.com/v1/oauth/authorize?client_id=${NOTION_CLIENT_ID}&response_type=code&owner=user&redirect_uri=${encodeURIComponent(NOTION_REDIRECT_URI)}`;
+    
+    // Redirect to Notion OAuth
+    window.location.href = authUrl;
   };
 
   // const handleCustomSchema = () => {
@@ -242,8 +252,8 @@ export default function NotionOnboarding({ onComplete, onCancel }: NotionOnboard
           </div>
         )}
 
-        {/* API Key Step */}
-        {step === 'api-key' && (
+        {/* OAuth Connect Step */}
+        {step === 'oauth-connect' && (
           <div className="onboarding-step">
             <button className="back-btn" onClick={() => setStep('select-schema')}>
               ← Back
@@ -251,67 +261,39 @@ export default function NotionOnboarding({ onComplete, onCancel }: NotionOnboard
 
             <h2>Connect Your Notion Account</h2>
             <p className="onboarding-description">
-              First, we need an API key to connect to your Notion workspace.
+              Connect your Notion workspace with one click. No API keys needed!
             </p>
 
             <div className="onboarding-instructions">
-              <h3>Quick Setup (2 minutes):</h3>
+              <h3>How it works:</h3>
               <ol>
                 <li>
-                  Click the button below to open Notion integrations
+                  Click <strong>"Connect with Notion"</strong> below
                 </li>
                 <li>
-                  Click <strong>"New integration"</strong>
+                  Authorize Winy AI Food in your Notion workspace
                 </li>
                 <li>
-                  Name it <strong>"Winy AI Food"</strong>
-                </li>
-                <li>
-                  Select your workspace and click <strong>"Submit"</strong>
-                </li>
-                <li>
-                  Copy the <strong>"Internal Integration Token"</strong> and paste it below
+                  We'll automatically connect and sync your food entries
                 </li>
               </ol>
-
-              <button
-                className="btn btn-secondary"
-                onClick={() => window.open('https://www.notion.so/my-integrations', '_blank')}
-              >
-                Open Notion Integrations →
-              </button>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="apiKey">Notion API Key</label>
-              <input
-                type="text"
-                id="apiKey"
-                value={apiKey}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  console.log('Input changed, length:', newValue.length); // Debug log
-                  setApiKey(newValue);
-                  setError('');
-                }}
-                onBlur={(e) => {
-                  console.log('Input blur, value:', e.target.value); // Debug log
-                }}
-                placeholder="ntn_..."
-                className="input"
-                autoComplete="off"
-                autoFocus
-              />
-              {error && <div className="error-message">{error}</div>}
-            </div>
+            {error && <div className="error-message">{error}</div>}
 
             <div className="onboarding-actions">
               <button
                 className="btn btn-primary btn-large"
-                onClick={handleApiKeySubmit}
-                disabled={loading || !apiKey.trim()}
+                onClick={handleOAuthConnect}
+                disabled={loading}
               >
-                {loading ? 'Verifying...' : 'Continue'}
+                {loading ? 'Connecting...' : 'Connect with Notion'}
+              </button>
+              <button
+                className="btn btn-text"
+                onClick={onCancel}
+              >
+                Cancel
               </button>
             </div>
           </div>
@@ -320,7 +302,7 @@ export default function NotionOnboarding({ onComplete, onCancel }: NotionOnboard
         {/* Choose Database Step */}
         {step === 'choose-database' && (
           <div className="onboarding-step">
-            <button className="back-btn" onClick={() => setStep('api-key')}>
+            <button className="back-btn" onClick={() => setStep('oauth-connect')}>
               ← Back
             </button>
 

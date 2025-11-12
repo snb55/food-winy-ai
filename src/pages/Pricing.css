@@ -1,0 +1,276 @@
+/**
+ * Pricing Page Styles
+ */
+
+.pricing-container {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #ffffff 0%, #f5f5f7 100%);
+}
+
+.pricing-header {
+  border-bottom: 1px solid #e5e5e5;
+  background: #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.pricing-header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pricing-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.pricing-logo-img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.pricing-logo-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.pricing-nav {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+  align-items: center;
+}
+
+.pricing-hero {
+  padding: 3rem 1rem 2rem 1rem;
+  text-align: center;
+}
+
+.pricing-hero-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.pricing-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem 0;
+}
+
+.pricing-subtitle {
+  font-size: 1.125rem;
+  color: #666666;
+  margin: 0;
+}
+
+.pricing-plans {
+  padding: 2rem 1rem 4rem 1rem;
+}
+
+.pricing-grid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 0 2rem;
+}
+
+.plan-card {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.plan-pro {
+  border-color: #cbd5ff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.plan-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.plan-header {
+  margin-bottom: 1rem;
+}
+
+.plan-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem 0;
+}
+
+.plan-tagline {
+  color: #666666;
+  margin: 0 0 0.75rem 0;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.plan-amount {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.plan-period {
+  color: #666666;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.feature {
+  font-size: 0.9375rem;
+  color: #000000;
+}
+
+.feature.dim {
+  color: #999999;
+}
+
+.feature.strong {
+  font-weight: 600;
+}
+
+.plan-cta {
+  width: 100%;
+}
+
+.pricing-footer {
+  border-top: 1px solid #e5e5e5;
+  background: #ffffff;
+  padding: 2rem 1rem;
+}
+
+.pricing-footer-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+  color: #666666;
+  padding: 0 2rem;
+}
+
+/* Responsive Design */
+/* Mobile: < 640px */
+@media (max-width: 639px) {
+  .pricing-header-content {
+    padding: 1rem;
+  }
+
+  .pricing-hero {
+    padding: 2rem 1rem;
+  }
+
+  .pricing-title {
+    font-size: 2rem;
+  }
+
+  .pricing-subtitle {
+    font-size: 1rem;
+  }
+
+  .pricing-plans {
+    padding: 2rem 1rem;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+  }
+
+  .plan-card {
+    padding: 1.25rem;
+  }
+
+  .pricing-footer-content {
+    padding: 0 1rem;
+  }
+
+  .pricing-nav {
+    gap: 0.5rem;
+  }
+}
+
+/* Tablet: 640px - 1024px */
+@media (min-width: 640px) and (max-width: 1024px) {
+  .pricing-header-content {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .pricing-hero {
+    padding: 3rem 1.5rem;
+  }
+
+  .pricing-title {
+    font-size: 2.5rem;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    padding: 0 1.5rem;
+  }
+}
+
+/* Desktop: > 1024px */
+@media (min-width: 1025px) {
+  .pricing-title {
+    font-size: 3rem;
+  }
+
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 1200px;
+  }
+}
+
+/* Large Desktop: > 1400px */
+@media (min-width: 1400px) {
+  .pricing-header-content,
+  .pricing-grid,
+  .pricing-footer-content {
+    max-width: 1600px;
+  }
+}
+
+/* Extra Large Desktop: > 1920px */
+@media (min-width: 1920px) {
+  .pricing-header-content,
+  .pricing-grid,
+  .pricing-footer-content {
+    max-width: 1800px;
+  }
+}
+
+

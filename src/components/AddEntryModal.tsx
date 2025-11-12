@@ -15,7 +15,7 @@ import { createEntry, getUserSettings, getActiveSchema } from '../services/fires
 import { generateFoodSummary } from '../services/gemini';
 import { syncEntryToNotion } from '../services/notion';
 import ReviewEntryModal from './ReviewEntryModal';
-import type { DatabaseSchema } from '../types';
+import type { DatabaseSchema, FoodEntry } from '../types';
 import './AddEntryModal.css';
 
 interface AddEntryModalProps {
@@ -151,50 +151,60 @@ export default function AddEntryModal({ onClose, onEntryAdded }: AddEntryModalPr
         aiSummary: updatedData.summary,
       };
 
-      // Add schema-based data if schema exists
+      // Always create fieldValues with extracted data (even without schema)
+      // This ensures dashboard can always read macro data
+      entryData.fieldValues = {
+        name: updatedData.title,
+        date: Date.now(),
+        summary: updatedData.summary,
+        photo: reviewData.photoUrl,
+        // Include extracted fields (macros) from AI
+        ...updatedData.extractedFields,
+      };
+
+      // Add schema reference if schema exists
       if (schema) {
         entryData.schemaId = schema.id;
-        entryData.fieldValues = {
-          name: updatedData.title,
-          date: Date.now(),
-          summary: updatedData.summary,
-          photo: reviewData.photoUrl,
-          ...updatedData.extractedFields,
-        };
       }
 
-      console.log('Creating entry with data:', entryData);
-      const entry = await createEntry(entryData);
-      console.log('Entry created successfully:', entry);
+      // Check if Notion is configured - if so, it's the source of truth
+      const settings = await getUserSettings(user.uid);
+      const hasNotion = settings?.notionApiKey && settings?.notionDatabaseId;
 
-      // Sync to Notion if configured
-      try {
-        const settings = await getUserSettings(user.uid);
-        if (settings?.notionApiKey && settings?.notionDatabaseId) {
-          console.log('Syncing to Notion with schema:', schema?.id);
-          console.log('Entry data:', entry);
+      if (hasNotion) {
+        // NOTION-FIRST: Create in Notion first (source of truth)
+        try {
+          console.log('Creating entry in Notion (source of truth) with schema:', schema?.id);
           const notionPageId = await syncEntryToNotion(
-            entry,
-            settings.notionApiKey,
-            settings.notionDatabaseId,
+            entryData as FoodEntry,
+            settings.notionApiKey!,
+            settings.notionDatabaseId!,
             schema
           );
-          console.log('Synced to Notion:', notionPageId);
-          showToast('Entry saved and synced to Notion!', 'success');
-        } else {
-          console.log('Notion not configured, skipping sync');
-          showToast('Entry saved successfully!', 'success');
-        }
-      } catch (notionError: any) {
-        console.error('Failed to sync to Notion:', notionError);
-        showToast('Entry saved, but Notion sync failed', 'error');
-        setError(`Entry saved to app, but Notion sync failed: ${notionError.message || 'Unknown error'}. Check Settings.`);
-        setSavingEntry(false);
-        // Don't close modal so user sees the error
-        return;
-      }
+          console.log('Created in Notion:', notionPageId);
 
-      onEntryAdded();
+          // Store Notion page ID and cache entry data in Firestore
+          entryData.notionPageId = notionPageId;
+          const entry = await createEntry(entryData);
+          console.log('Entry cached in Firestore:', entry);
+
+          showToast('Entry saved to Notion!', 'success');
+          onEntryAdded();
+        } catch (notionError: any) {
+          console.error('Failed to create in Notion (source of truth):', notionError);
+          showToast('Failed to save to Notion. Please check your connection.', 'error');
+          setError(`Entry not saved: ${notionError.message || 'Failed to sync to Notion. Check Settings.'}`);
+          setSavingEntry(false);
+          return; // Don't save to Firestore if Notion fails (it's the source of truth)
+        }
+      } else {
+        // FALLBACK: Create in Firestore if Notion not configured
+        console.log('Notion not configured, saving to Firestore');
+        const entry = await createEntry(entryData);
+        console.log('Entry saved to Firestore:', entry);
+        showToast('Entry saved successfully!', 'success');
+        onEntryAdded();
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create entry');
       setSavingEntry(false);

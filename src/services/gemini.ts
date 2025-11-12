@@ -70,16 +70,23 @@ export async function generateFoodSummary(
 ${fieldDescriptions}`;
 
     extractionExample = JSON.stringify(exampleFields);
-  } else {
-    // Default to basic macros if no schema
-    extractionInstructions = `Extract basic nutritional information:
+    } else {
+      // Default to basic macros if no schema
+      extractionInstructions = `Extract basic nutritional information:
 "protein": Estimated grams of protein
 "carbs": Estimated grams of carbohydrates
 "fat": Estimated grams of fat
 "calories": Estimated total calories (kcal)`;
 
-    extractionExample = '{"protein": 35, "carbs": 45, "fat": 15, "calories": 450}';
-  }
+      extractionExample = '{"protein": 35, "carbs": 45, "fat": 15, "calories": 450}';
+    }
+    
+    // ALWAYS ensure basic macros are included (even if schema has custom fields)
+    // Merge schema fields with basic macros to ensure dashboard always has data
+    if (!extractionInstructions.includes('"protein"') || !extractionInstructions.includes('"calories"')) {
+      const basicMacros = '\n"protein": Estimated grams of protein\n"carbs": Estimated grams of carbohydrates\n"fat": Estimated grams of fat\n"calories": Estimated total calories (kcal)';
+      extractionInstructions += basicMacros;
+    }
 
   const prompt = `Analyze this food and provide a title, nutritional estimates, and a brief summary.
 
@@ -162,6 +169,21 @@ IMPORTANT:
           console.log('Manually extracted fields:', extractedFields);
         }
       }
+    }
+    
+    // Ensure basic macros always exist (set to 0 if missing)
+    // This ensures dashboard always has data to display
+    if (!extractedFields.protein && extractedFields.protein !== 0) {
+      extractedFields.protein = 0;
+    }
+    if (!extractedFields.carbs && extractedFields.carbs !== 0) {
+      extractedFields.carbs = 0;
+    }
+    if (!extractedFields.fat && extractedFields.fat !== 0) {
+      extractedFields.fat = 0;
+    }
+    if (!extractedFields.calories && extractedFields.calories !== 0) {
+      extractedFields.calories = 0;
     }
 
     return {

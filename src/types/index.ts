@@ -68,6 +68,30 @@ export interface FoodEntry {
 }
 
 /**
+ * Dashboard visibility settings
+ * Controls which charts are visible in the main dashboard
+ */
+export interface DashboardVisibility {
+  mainChart: boolean;
+  proteinGoal: boolean;
+  calorieLimit: boolean;
+  proteinStreak: boolean;
+  calorieStreak: boolean;
+}
+
+/**
+ * Embed tokens for each chart type
+ * Used to generate secure public embed URLs
+ */
+export interface EmbedTokens {
+  mainChart?: string;
+  proteinGoal?: string;
+  calorieLimit?: string;
+  proteinStreak?: string;
+  calorieStreak?: string;
+}
+
+/**
  * User Settings interface
  * Stores user preferences and API keys
  */
@@ -78,6 +102,11 @@ export interface UserSettings {
   geminiApiKey?: string;
   activeSchemaId?: string; // current schema being used
   templateId?: string; // tracking template (macro-tracking, simple-logging, etc.)
+  proteinGoal?: number; // goal for protein in grams (default: 150g)
+  goalField?: string; // which field to track for goals (default: 'protein')
+  calorieLimit?: number; // goal for calories in kcal (default: none)
+  dashboardVisibility?: DashboardVisibility; // visibility toggles for charts
+  embedTokens?: EmbedTokens; // secure tokens for embed URLs
 }
 
 /**

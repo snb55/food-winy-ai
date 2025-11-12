@@ -145,8 +145,15 @@
   padding: 0.5rem;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   transition: color 0.2s;
+  text-align: center;
+  width: 100%;
 }
 
 .toggle-auth:hover:not(:disabled) {
   color: #000000;
+}
+
+.btn-secondary {
+  text-align: center;
+  width: 100%;
 }
