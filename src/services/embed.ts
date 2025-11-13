@@ -2,12 +2,11 @@
  * Embed Data Service
  *
  * Service for fetching data for embed pages.
- * Validates tokens and loads data from Notion (source of truth).
+ * Validates tokens and loads data from Firestore (source of truth).
  */
 
 import type { FoodEntry, UserSettings, DatabaseSchema } from '../types';
-import { getUserSettings, getActiveSchema } from './firestore';
-import { queryNotionEntries } from './notion';
+import { getUserSettings, getActiveSchema, getUserEntries } from './firestore';
 import type { ChartType } from '../utils/embedTokens';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import app from '../config/firebase';
@@ -50,21 +49,14 @@ export async function fetchEmbedData(
   // Load schema
   const schema = await getActiveSchema(userId);
 
-  // Load entries from Notion (source of truth)
+  // Load entries from Firestore (source of truth)
   let entries: FoodEntry[] = [];
-  
-  if (settings.notionApiKey && settings.notionDatabaseId) {
-    try {
-      entries = await queryNotionEntries(
-        settings.notionApiKey,
-        settings.notionDatabaseId,
-        schema
-      );
-    } catch (error: any) {
-      console.error('Error loading entries from Notion for embed:', error);
-      // If Notion fails, return empty entries (don't fall back to Firestore)
-      entries = [];
-    }
+
+  try {
+    entries = await getUserEntries(userId);
+  } catch (error: any) {
+    console.error('Error loading entries from Firestore for embed:', error);
+    entries = [];
   }
 
   return {

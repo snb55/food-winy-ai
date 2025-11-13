@@ -46,28 +46,44 @@ export default function EntryCard({ entry, onDelete }: EntryCardProps) {
   }, [entry.schemaId]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Delete this entry?')) return;
     if (!user) return;
 
     try {
       // Get user settings to check if Notion is configured
       const settings = await getUserSettings(user.uid);
-      const hasNotion = settings?.notionApiKey && settings?.notionDatabaseId;
+      const hasNotion = settings?.notionApiKey && settings?.notionDatabaseId && entry.notionPageId;
 
-      // NOTION-FIRST: Delete from Notion if it's the source of truth
-      if (hasNotion && entry.notionPageId) {
+      let deleteFromNotion = false;
+
+      // If Notion is configured, ask where to delete from
+      if (hasNotion) {
+        const choice = window.confirm(
+          'Delete from both app and Notion?\n\n' +
+          'OK = Delete from both\n' +
+          'Cancel = Delete from app only (keep in Notion)'
+        );
+        deleteFromNotion = choice;
+      } else {
+        // If Notion not configured, just confirm delete
+        if (!window.confirm('Delete this entry?')) return;
+      }
+
+      // FIRESTORE-FIRST: Delete from Firestore (source of truth) first
+      await deleteEntry(entry.id);
+      console.log('Deleted from Firestore (source of truth)');
+
+      // If user chose to delete from Notion too, try to delete
+      if (deleteFromNotion && entry.notionPageId && settings) {
         try {
           await deleteNotionPage(settings.notionApiKey!, entry.notionPageId);
-          console.log('Deleted from Notion (source of truth)');
+          console.log('Deleted from Notion mirror');
         } catch (notionError: any) {
           console.error('Failed to delete from Notion:', notionError);
-          alert('Failed to delete from Notion. Entry will still be removed from cache.');
-          // Continue to delete from Firestore cache anyway
+          alert('Entry deleted from app, but failed to delete from Notion. You may need to delete it manually in Notion.');
+          // Entry is already deleted from Firestore, so continue
         }
       }
 
-      // Delete from Firestore cache
-      await deleteEntry(entry.id);
       onDelete();
     } catch (error) {
       console.error('Error deleting entry:', error);

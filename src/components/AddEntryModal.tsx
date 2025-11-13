@@ -11,7 +11,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { createEntry, getUserSettings, getActiveSchema } from '../services/firestore';
+import { createEntry, updateEntry, getUserSettings, getActiveSchema } from '../services/firestore';
 import { generateFoodSummary } from '../services/gemini';
 import { syncEntryToNotion } from '../services/notion';
 import ReviewEntryModal from './ReviewEntryModal';
@@ -167,44 +167,42 @@ export default function AddEntryModal({ onClose, onEntryAdded }: AddEntryModalPr
         entryData.schemaId = schema.id;
       }
 
-      // Check if Notion is configured - if so, it's the source of truth
+      // FIRESTORE-FIRST: Save to Firestore first (source of truth)
+      console.log('Creating entry in Firestore (source of truth) with schema:', schema?.id);
+      const entry = await createEntry(entryData);
+      console.log('Entry saved to Firestore:', entry.id);
+
+      // Check if Notion is configured - sync as mirror
       const settings = await getUserSettings(user.uid);
       const hasNotion = settings?.notionApiKey && settings?.notionDatabaseId;
 
       if (hasNotion) {
-        // NOTION-FIRST: Create in Notion first (source of truth)
+        // NOTION SYNC: Try to sync to Notion (mirror/view destination)
         try {
-          console.log('Creating entry in Notion (source of truth) with schema:', schema?.id);
+          console.log('Syncing entry to Notion (mirror) with schema:', schema?.id);
           const notionPageId = await syncEntryToNotion(
-            entryData as FoodEntry,
+            entry as FoodEntry,
             settings.notionApiKey!,
             settings.notionDatabaseId!,
             schema
           );
-          console.log('Created in Notion:', notionPageId);
+          console.log('Synced to Notion:', notionPageId);
 
-          // Store Notion page ID and cache entry data in Firestore
-          entryData.notionPageId = notionPageId;
-          const entry = await createEntry(entryData);
-          console.log('Entry cached in Firestore:', entry);
+          // Update Firestore entry with Notion page ID
+          await updateEntry(entry.id, { notionPageId });
+          console.log('Updated Firestore entry with notionPageId');
 
-          showToast('Entry saved to Notion!', 'success');
-          onEntryAdded();
+          showToast('Entry saved and synced to Notion!', 'success');
         } catch (notionError: any) {
-          console.error('Failed to create in Notion (source of truth):', notionError);
-          showToast('Failed to save to Notion. Please check your connection.', 'error');
-          setError(`Entry not saved: ${notionError.message || 'Failed to sync to Notion. Check Settings.'}`);
-          setSavingEntry(false);
-          return; // Don't save to Firestore if Notion fails (it's the source of truth)
+          console.error('Failed to sync to Notion (mirror):', notionError);
+          showToast('Entry saved locally. Notion sync failed - will retry later.', 'warning');
+          // Entry is still saved in Firestore, just failed to mirror to Notion
         }
       } else {
-        // FALLBACK: Create in Firestore if Notion not configured
-        console.log('Notion not configured, saving to Firestore');
-        const entry = await createEntry(entryData);
-        console.log('Entry saved to Firestore:', entry);
         showToast('Entry saved successfully!', 'success');
-        onEntryAdded();
       }
+
+      onEntryAdded();
     } catch (err: any) {
       setError(err.message || 'Failed to create entry');
       setSavingEntry(false);

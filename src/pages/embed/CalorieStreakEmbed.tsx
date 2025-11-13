@@ -39,8 +39,7 @@ export default function CalorieStreakEmbed() {
     };
 
     loadData();
-    const refreshInterval = setInterval(loadData, 5 * 60 * 1000);
-    return () => clearInterval(refreshInterval);
+    // Removed auto-refresh polling - data loads from Firestore which is fast
   }, [token]);
 
   const streak = useMemo(() => {

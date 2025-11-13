@@ -49,10 +49,7 @@ export default function MainChartEmbed() {
     };
 
     loadData();
-
-    // Auto-refresh every 5 minutes
-    const refreshInterval = setInterval(loadData, 5 * 60 * 1000);
-    return () => clearInterval(refreshInterval);
+    // Removed auto-refresh polling - data loads from Firestore which is fast
   }, [token]);
 
   const dailyData = useMemo(() => {

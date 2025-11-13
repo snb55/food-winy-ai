@@ -7,8 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getUserEntries, getActiveSchema, getUserSettings, createEntry, updateEntry } from '../services/firestore';
-import { queryNotionEntries } from '../services/notion';
+import { getUserEntries, getActiveSchema, getUserSettings } from '../services/firestore';
 import type { FoodEntry, DatabaseSchema, UserSettings } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import AddEntryModal from '../components/AddEntryModal';
@@ -37,46 +36,7 @@ export default function Feed() {
     loadData();
   }, [user, location.pathname]); // Reload when pathname changes (e.g., coming back from Settings)
 
-  // CRITICAL SAFETY: Clear entries immediately when Notion is disconnected
-  useEffect(() => {
-    if (settings) {
-      const hasNotion = !!(settings.notionApiKey && settings.notionDatabaseId);
-      console.log('🔍 Notion status check:', { 
-        hasNotion, 
-        entriesCount: entries.length,
-        notionApiKey: !!settings.notionApiKey,
-        notionDatabaseId: !!settings.notionDatabaseId
-      });
-      
-      if (!hasNotion) {
-        // CRITICAL: If Notion is disconnected, entries MUST be empty IMMEDIATELY
-        if (entries.length > 0) {
-          console.error('🚨 CRITICAL: Notion disconnected - clearing ALL entries immediately!', {
-            entriesCount: entries.length,
-            sampleEntry: entries[0] ? {
-              id: entries[0].id,
-              notionPageId: entries[0].notionPageId,
-              title: entries[0].title || entries[0].text
-            } : null
-          });
-          setEntries([]);
-        }
-      } else {
-        // If Notion is configured, verify all displayed entries have notionPageId
-        const entriesWithoutNotionId = entries.filter(e => !e.notionPageId);
-        if (entriesWithoutNotionId.length > 0) {
-          console.error('🚨 CRITICAL: Found entries without notionPageId after Notion config detected!', {
-            count: entriesWithoutNotionId.length,
-            entries: entriesWithoutNotionId.map(e => ({ id: e.id, title: e.title || e.text }))
-          });
-          // Immediately filter them out
-          const validEntries = entries.filter(e => e.notionPageId);
-          console.log('🧹 Auto-cleaning: Removing', entriesWithoutNotionId.length, 'invalid entries');
-          setEntries(validEntries);
-        }
-      }
-    }
-  }, [settings?.notionApiKey, settings?.notionDatabaseId]);
+  // Removed Notion disconnect safety check - Firestore is now source of truth
 
   const loadData = async () => {
     if (!user) return;
@@ -95,125 +55,25 @@ export default function Feed() {
       setSchema(activeSchema);
       setSettings(userSettings);
 
-      // CRITICAL: Check if Notion is disconnected FIRST and clear entries immediately
-      const hasNotion = !!(userSettings?.notionApiKey && userSettings?.notionDatabaseId);
-      if (!hasNotion) {
-        console.log('🚨 Notion disconnected - clearing entries immediately at loadData');
-        setEntries([]);
-        setLoading(false);
-        return; // Exit early - don't load anything
-      }
+      // FIRESTORE-FIRST: Load entries from Firestore (source of truth)
+      try {
+        console.log('Loading entries from Firestore (source of truth)...');
+        const firestoreEntries = await getUserEntries(user.uid);
 
-      // NOTION-FIRST: If Notion is connected, load from Notion (source of truth)
-      if (userSettings?.notionApiKey && userSettings?.notionDatabaseId) {
-        // IMMEDIATELY clear entries to prevent showing old Firestore data
-        console.log('Notion is configured - clearing any existing entries first');
-        setEntries([]);
-        
-        try {
-          console.log('Loading entries from Notion (source of truth)...');
-          console.log('Notion Database ID:', userSettings.notionDatabaseId);
-          console.log('Notion API Key present:', !!userSettings.notionApiKey);
-          
-          const notionEntries = await queryNotionEntries(
-            userSettings.notionApiKey,
-            userSettings.notionDatabaseId,
-            activeSchema
-          );
-          
-          console.log('✅ Loaded entries from Notion:', notionEntries.length, 'entries');
-          if (notionEntries.length > 0) {
-            console.log('Sample Notion entry:', notionEntries[0]);
-          } else {
-            console.log('⚠️ Notion database is empty - no entries found');
-          }
-
-          // Verify all entries have notionPageId before displaying
-          const validNotionEntries = notionEntries.filter(e => {
-            if (!e.notionPageId) {
-              console.error('❌ Invalid: Entry from Notion missing notionPageId:', e);
-              return false;
-            }
-            return true;
-          });
-
-          console.log('✅ Valid Notion entries:', validNotionEntries.length, 'of', notionEntries.length);
-
-          // Sync Notion entries to Firestore cache (upsert by notionPageId)
-          // We sync to cache, but we DISPLAY from Notion results
-          for (const notionEntry of validNotionEntries) {
-            try {
-              // Check if entry already exists in Firestore by notionPageId
-              const existingEntries = await getUserEntries(user.uid);
-              const existing = existingEntries.find(
-                (e) => e.notionPageId === notionEntry.notionPageId
-              );
-
-              const entryData = {
-                ...notionEntry,
-                userId: user.uid,
-                schemaId: activeSchema?.id,
-              };
-
-              if (existing) {
-                // Update existing entry in Firestore cache
-                await updateEntry(existing.id, entryData);
-                // Update the ID in our display list
-                notionEntry.id = existing.id;
-              } else {
-                // Create new entry in Firestore cache
-                const created = await createEntry(entryData);
-                // Update the ID in our display list
-                notionEntry.id = created.id;
-              }
-            } catch (syncError) {
-              console.error('Error syncing entry to Firestore cache:', syncError);
-              // Continue even if cache sync fails - Notion is source of truth
-            }
-          }
-
-          // NOTION IS SOURCE OF TRUTH: Only show entries from Notion
-          // Don't show legacy Firestore entries that aren't in Notion
-          console.log('🔒 Setting entries to Notion results ONLY (no Firestore entries)', {
-            count: validNotionEntries.length,
-            sample: validNotionEntries[0] ? {
-              id: validNotionEntries[0].id,
-              notionPageId: validNotionEntries[0].notionPageId,
-              hasTitle: !!(validNotionEntries[0].title || validNotionEntries[0].text)
-            } : null
-          });
-          setEntries(validNotionEntries);
-          
-          // Clean up: Remove any Firestore entries that don't have a notionPageId 
-          // (they're orphaned legacy entries that should not be shown)
-          if (notionEntries.length === 0) {
-            console.log('ℹ️ No entries in Notion database. Showing empty state.');
-          } else {
-            // Verify all entries have notionPageId
-            const entriesWithoutNotionId = notionEntries.filter(e => !e.notionPageId);
-            if (entriesWithoutNotionId.length > 0) {
-              console.warn('⚠️ Warning: Some entries from Notion are missing notionPageId:', entriesWithoutNotionId);
-            }
-          }
-        } catch (notionError: any) {
-          console.error('❌ Failed to load from Notion:', notionError);
-          console.error('Error details:', {
-            message: notionError.message,
-            code: notionError.code,
-            stack: notionError.stack
-          });
-          // NOTION IS SOURCE OF TRUTH: Don't fall back to Firestore
-          // If Notion fails, show empty state and error message
-          setEntries([]);
-          console.log('Entries cleared - showing empty state due to Notion error');
-          alert(`Failed to load entries from Notion: ${notionError.message}\n\nPlease check your Notion API key and database ID in Settings.`);
+        console.log('✅ Loaded entries from Firestore:', firestoreEntries.length, 'entries');
+        if (firestoreEntries.length > 0) {
+          console.log('Sample Firestore entry:', firestoreEntries[0]);
         }
-      } else {
-        // NOTION-FIRST: If Notion is disconnected, show empty state
-        // Firestore is just a cache, not a source of truth
-        console.log('Notion not configured - showing empty state (Notion is source of truth)');
-        console.log('To see entries, connect your Notion database in Settings');
+
+        setEntries(firestoreEntries);
+
+        // Check Notion connection status for display purposes only
+        const hasNotion = !!(userSettings?.notionApiKey && userSettings?.notionDatabaseId);
+        console.log('Notion connected:', hasNotion);
+      } catch (error: any) {
+        console.error('❌ Failed to load from Firestore:', error);
         setEntries([]);
+        alert(`Failed to load entries: ${error.message}`);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -226,66 +86,20 @@ export default function Feed() {
     if (!user) return;
 
     try {
-      const userSettings = await getUserSettings(user.uid);
       const activeSchema = await getActiveSchema(user.uid);
 
       // Reload schema
       setSchema(activeSchema);
 
-      // NOTION-FIRST: Load from Notion if connected
-      if (userSettings?.notionApiKey && userSettings?.notionDatabaseId) {
-        // IMMEDIATELY clear entries
-        console.log('Reloading: Notion configured - clearing entries first');
-        setEntries([]);
-        
-        try {
-          const notionEntries = await queryNotionEntries(
-            userSettings.notionApiKey,
-            userSettings.notionDatabaseId,
-            activeSchema
-          );
-          
-          console.log('✅ Reloaded entries from Notion:', notionEntries.length);
+      // FIRESTORE-FIRST: Load from Firestore (source of truth)
+      console.log('Reloading entries from Firestore (source of truth)...');
+      const firestoreEntries = await getUserEntries(user.uid);
 
-          // Sync to Firestore cache
-          for (const notionEntry of notionEntries) {
-            if (notionEntry.notionPageId) {
-              const existingEntries = await getUserEntries(user.uid);
-              const existing = existingEntries.find(
-                (e) => e.notionPageId === notionEntry.notionPageId
-              );
-
-              const entryData = {
-                ...notionEntry,
-                userId: user.uid,
-                schemaId: activeSchema?.id,
-              };
-
-              if (existing) {
-                await updateEntry(existing.id, entryData);
-              } else {
-                await createEntry(entryData);
-              }
-            }
-          }
-
-          // NOTION IS SOURCE OF TRUTH: Only show entries from Notion
-          console.log('Setting entries to Notion results only');
-          setEntries(notionEntries);
-        } catch (notionError: any) {
-          console.error('❌ Failed to reload from Notion:', notionError);
-          // NOTION IS SOURCE OF TRUTH: Don't fall back to Firestore
-          // Show empty state if Notion fails
-          setEntries([]);
-          console.log('Entries cleared - showing empty state due to Notion error');
-        }
-      } else {
-        // NOTION-FIRST: If Notion is disconnected, show empty state
-        console.log('Reload: Notion not configured - showing empty state');
-        setEntries([]);
-      }
+      console.log('✅ Reloaded entries from Firestore:', firestoreEntries.length);
+      setEntries(firestoreEntries);
     } catch (error) {
       console.error('Error loading entries:', error);
+      setEntries([]);
     }
   };
 
@@ -334,18 +148,14 @@ export default function Feed() {
           <div className="loading">Loading entries...</div>
         ) : entries.length === 0 ? (
           <div className="empty-state">
-            {settings?.notionApiKey && settings?.notionDatabaseId ? (
-              <>
-                <p>No entries in your Notion database yet.</p>
-                <p className="empty-subtitle">
-                  Click "New Entry" to log your first meal! It will be saved to Notion.
-                </p>
-              </>
-            ) : (
-              <>
-                <p>Connect Notion to start logging meals.</p>
-                <p className="empty-subtitle">
-                  Your food entries will be saved directly to your Notion database.
+            <p>No entries yet. Start logging to see your progress!</p>
+            <p className="empty-subtitle">
+              Click "New Entry" to log your first meal!
+              {settings?.notionApiKey && settings?.notionDatabaseId ? (
+                <> Entries will be synced to your Notion database.</>
+              ) : (
+                <>
+                  {' '}
                   <br />
                   <button
                     onClick={() => navigate('/settings')}
@@ -360,11 +170,11 @@ export default function Feed() {
                       fontSize: '0.875rem',
                     }}
                   >
-                    Go to Settings
+                    Connect Notion to sync entries
                   </button>
-                </p>
-              </>
-            )}
+                </>
+              )}
+            </p>
           </div>
         ) : (
           <div className="entries-grid">
