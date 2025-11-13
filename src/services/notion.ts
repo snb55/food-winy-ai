@@ -240,19 +240,14 @@ export async function analyzeDatabase(
  * @returns The created database ID
  */
 /**
- * ARCHIVED: Query entries from Notion database
- *
- * This function is archived because we now use Firestore as the source of truth.
- * Notion serves as a mirror/view destination only.
- *
- * Kept for potential future "manual import from Notion" feature.
+ * Query entries from Notion database (bidirectional sync)
+ * Used to pull changes made in Notion back into Firestore
  *
  * @param notionApiKey - User's Notion integration token
  * @param databaseId - Target Notion database ID
  * @param schema - Optional schema for field mapping
  * @returns Array of entries from Notion
  */
-/*
 export async function queryNotionEntries(
   notionApiKey: string,
   databaseId: string,
@@ -295,7 +290,6 @@ export async function queryNotionEntries(
     throw new Error(error.message || 'Failed to query Notion database. Please check your API key and database ID.');
   }
 }
-*/
 
 /**
  * Delete a page from Notion database (archive it)

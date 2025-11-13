@@ -7,7 +7,8 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getUserEntries, getActiveSchema, getUserSettings } from '../services/firestore';
+import { getUserEntries, getActiveSchema, getUserSettings, updateEntry, createEntry } from '../services/firestore';
+import { queryNotionEntries } from '../services/notion';
 import type { FoodEntry, DatabaseSchema, UserSettings } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import AddEntryModal from '../components/AddEntryModal';
@@ -55,21 +56,66 @@ export default function Feed() {
       setSchema(activeSchema);
       setSettings(userSettings);
 
-      // FIRESTORE-FIRST: Load entries from Firestore (source of truth)
+      // BIDIRECTIONAL SYNC: Load from Firestore, then sync from Notion
       try {
-        console.log('Loading entries from Firestore (source of truth)...');
+        console.log('Loading entries from Firestore...');
         const firestoreEntries = await getUserEntries(user.uid);
 
         console.log('✅ Loaded entries from Firestore:', firestoreEntries.length, 'entries');
-        if (firestoreEntries.length > 0) {
-          console.log('Sample Firestore entry:', firestoreEntries[0]);
-        }
 
-        setEntries(firestoreEntries);
-
-        // Check Notion connection status for display purposes only
+        // If Notion is connected, sync changes from Notion to Firestore
         const hasNotion = !!(userSettings?.notionApiKey && userSettings?.notionDatabaseId);
-        console.log('Notion connected:', hasNotion);
+
+        if (hasNotion) {
+          try {
+            console.log('🔄 Syncing from Notion...');
+            const notionEntries = await queryNotionEntries(
+              userSettings.notionApiKey!,
+              userSettings.notionDatabaseId!,
+              activeSchema
+            );
+
+            console.log('✅ Loaded from Notion:', notionEntries.length, 'entries');
+
+            // Merge Notion entries into Firestore
+            for (const notionEntry of notionEntries) {
+              if (!notionEntry.notionPageId) continue;
+
+              // Find matching Firestore entry by notionPageId
+              const existingEntry = firestoreEntries.find(
+                e => e.notionPageId === notionEntry.notionPageId
+              );
+
+              const entryData = {
+                ...notionEntry,
+                userId: user.uid,
+                schemaId: activeSchema?.id,
+              };
+
+              if (existingEntry) {
+                // Update existing entry with Notion changes
+                await updateEntry(existingEntry.id, entryData);
+                console.log('Updated entry from Notion:', existingEntry.id);
+              } else {
+                // Create new entry from Notion
+                const created = await createEntry(entryData);
+                console.log('Created new entry from Notion:', created.id);
+              }
+            }
+
+            // Reload from Firestore after sync
+            const updatedEntries = await getUserEntries(user.uid);
+            setEntries(updatedEntries);
+            console.log('✅ Sync complete. Total entries:', updatedEntries.length);
+          } catch (notionError: any) {
+            console.error('⚠️ Notion sync failed (continuing with Firestore data):', notionError);
+            // Continue with Firestore data even if Notion sync fails
+            setEntries(firestoreEntries);
+          }
+        } else {
+          // No Notion connected, just use Firestore data
+          setEntries(firestoreEntries);
+        }
       } catch (error: any) {
         console.error('❌ Failed to load from Firestore:', error);
         setEntries([]);
